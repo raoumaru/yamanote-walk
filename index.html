@@ -483,7 +483,7 @@ function buildMapTab() {
 MS.forEach(m => {
   const d = document.createElement('div');
   d.className = 'ms locked'; d.id = 'ms' + m.km;
-  d.innerHTML = `<div class="ms-icon">🔒</div><div class="ms-km">${m.km}km</div><div class="ms-label">${m.label.replace('\n','<br>')}</div>`;
+  d.innerHTML = `<div class="ms-icon">🔒</div><div class="ms-km">${m.km}km</div><div class="ms-label ms-label-hidden"></div>`;
   document.getElementById('ms-grid').appendChild(d);
 });
 
@@ -628,6 +628,8 @@ function updateMS() {
     if (!was && now) newlyUnlocked.push(m);
     el.className = 'ms ' + (now ? 'unlocked' : 'locked');
     el.querySelector('.ms-icon').textContent = now ? m.icon : '🔒';
+    const lbl = el.querySelector('.ms-label');
+    if (lbl) { lbl.innerHTML = now ? m.label.replace('\n','<br>') : ''; }
   });
   if (newlyUnlocked.length > 0 && !restoring) {
     setTimeout(() => { showMilestoneToasts(newlyUnlocked); launchConfetti(); }, 400);
