@@ -78,14 +78,22 @@
   .stat-l { font-size: 9px; color: var(--brown); margin-top: 2px; }
   .cover-quote { font-size: 11px; color: var(--brown); letter-spacing: 2px; font-style: italic; opacity: .8; }
 
-  /* ── HOME: QUICK START BTN ── */
-  #quick-start {
-    display: block; width: 100%; padding: 14px; margin-bottom: 14px;
-    background: var(--red); color: white; font-family: 'Noto Sans JP', sans-serif;
-    font-size: 15px; font-weight: 900; letter-spacing: 2px;
-    border: 2px solid var(--gold); border-radius: 6px; cursor: pointer;
-    box-shadow: 0 4px 16px rgba(178,34,34,.5);
-  }
+  /* ── HOME: COMPACT OVERRIDES ── */
+  #tab-home { padding: 8px 12px; }
+  #tab-home #cover { padding: 12px 12px; margin-bottom: 8px; }
+  #tab-home .cover-main { font-size: clamp(22px,5vw,30px); }
+  #tab-home .cover-sub { margin: 3px 0 6px; }
+  #tab-home .divider { margin: 4px 0; }
+  #tab-home .stats { margin: 6px 0; }
+  #tab-home .stat { padding: 5px 4px; }
+  #tab-home .stat-n { font-size: 20px; }
+  #tab-home .card { padding: 10px; margin-bottom: 8px; }
+  #tab-home .ms-grid { grid-template-columns: repeat(auto-fill, minmax(85px,1fr)); gap: 4px; }
+  #tab-home .ms { padding: 4px; }
+  #tab-home .ms-icon { font-size: 16px; margin-bottom: 1px; }
+  #tab-home .ms-km { font-size: 13px; }
+  #tab-home .ms-label { font-size: 7px; }
+  #tab-home footer { padding: 4px 0 6px; }
 
   /* ── HOME: MILESTONES ── */
   .ms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px,1fr)); gap: 6px; }
@@ -246,8 +254,6 @@
       <div class="stat"><div class="stat-n">12</div><div class="stat-u">時間</div><div class="stat-l">大冒険</div></div>
     </div>
   </div>
-
-  <button id="quick-start" onclick="showTab('stations')">⚔ 冒険を続ける →</button>
 
   <div class="card">
     <div class="sec-title">🏆 距離マイルストーン</div>
