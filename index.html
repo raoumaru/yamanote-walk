@@ -175,8 +175,10 @@
   .lunch-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
   @media(max-width:400px){.lunch-grid{grid-template-columns:1fr}}
   .l-card { border:1px solid rgba(45,90,27,.3); border-radius:4px; padding:8px; background:rgba(255,255,255,.5); }
+  .l-card.local { border-color:var(--gold); background:rgba(200,146,10,.07); }
   .l-name { font-size:12px; font-weight:700; color:var(--ink); }
   .l-genre { font-size:9px; color:white; background:var(--green); border-radius:2px; padding:1px 4px; display:inline-block; margin:2px 0; }
+  .l-local-badge { font-size:9px; color:var(--gold); background:rgba(200,146,10,.15); border:1px solid var(--gold); border-radius:2px; padding:1px 4px; display:inline-block; margin:2px 0 2px 3px; font-weight:700; }
   .l-rec { font-size:10px; color:var(--brown); font-weight:700; margin-bottom:2px; }
   .l-desc { font-size:9px; color:var(--brown); line-height:1.5; }
 
@@ -381,6 +383,9 @@ const LUNCH = [
   {n:"なか卯 上野店",g:"うどん・丼",a:"上野駅徒歩3分",r:"親子丼・うどんセット",d:"グループ席あり。うどんは消化に優しく、親子丼で後半戦のエネルギーを確保できる。",url:"https://www.google.com/maps/search/なか卯+上野"},
   {n:"てんや 上野御徒町店",g:"天丼",a:"御徒町駅徒歩2分",r:"野菜天丼・天ぷら定食",d:"大型店でグループ対応◎。野菜天丼は揚げ物でも軽く胃もたれしにくい。",url:"https://www.google.com/maps/search/てんや+上野御徒町"},
   {n:"大戸屋 上野アメ横店",g:"定食",a:"上野駅徒歩5分",r:"チキン南蛮定食・焼き魚定食",d:"席数多くゆっくり休める。蒸し・焼き中心のメニューで脂質が少なく消化に最適。",url:"https://www.google.com/maps/search/大戸屋+上野"},
+  {n:"韻松亭",g:"和食",a:"上野駅徒歩8分（上野公園内）",r:"煮物定食・うどん御膳",d:"明治5年創業の老舗和食。上野公園内で広間あり7人でもゆったり。煮物・うどん中心で消化に最適。要事前確認推奨。",url:"https://www.google.com/maps/search/韻松亭+上野",local:true},
+  {n:"上野精養軒",g:"洋食",a:"上野駅徒歩10分（上野公園内）",r:"ハヤシライス・オムライス",d:"明治11年創業の老舗洋食。広い店内でグループ利用も安心。ハヤシライスは胃に優しく疲れた体に◎。",url:"https://www.google.com/maps/search/上野精養軒",local:true},
+  {n:"乃池",g:"寿司",a:"日暮里駅徒歩5分（谷中銀座）",r:"ちらし寿司・握りランチ",d:"谷中銀座の地元老舗寿司屋。魚中心で消化良し。下町の雰囲気の中でゆっくり休憩できる。大人数は要事前連絡。",url:"https://www.google.com/maps/search/乃池+谷中",local:true},
 ];
 
 const ITEMS = {
@@ -514,8 +519,9 @@ ST.forEach((s, i) => {
 
 /* ── BUILD LUNCH ── */
 LUNCH.forEach(l => {
-  const d = document.createElement('div'); d.className = 'l-card';
-  d.innerHTML = `<div class="l-name">${l.n}</div><span class="l-genre">${l.g}</span><span style="font-size:9px;color:var(--brown);margin-left:3px">${l.a}</span><div class="l-rec">推薦：${l.r}</div><div class="l-desc">${l.d}</div><a href="${l.url}" target="_blank" rel="noopener" class="map-btn">📍 地図を開く</a>`;
+  const d = document.createElement('div'); d.className = 'l-card' + (l.local ? ' local' : '');
+  const badge = l.local ? `<span class="l-local-badge">⭐ 地元名店</span>` : '';
+  d.innerHTML = `<div class="l-name">${l.n}${badge}</div><span class="l-genre">${l.g}</span><span style="font-size:9px;color:var(--brown);margin-left:3px">${l.a}</span><div class="l-rec">推薦：${l.r}</div><div class="l-desc">${l.d}</div><a href="${l.url}" target="_blank" rel="noopener" class="map-btn">📍 地図を開く</a>`;
   document.getElementById('lunch-grid').appendChild(d);
 });
 
