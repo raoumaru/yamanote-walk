@@ -129,25 +129,26 @@
 
   /* ── STATION CARD ── */
   .st-card {
-    display:flex; align-items:flex-start; gap: 8px; padding: 8px; margin-bottom: 7px;
+    display:block; position:relative; padding: 8px 58px 8px 8px; margin-bottom: 7px;
     border: 1px solid rgba(139,90,43,.3); border-radius: 4px; background: rgba(255,255,255,.75);
     transition: all .35s;
   }
   .st-card.visited { background: rgba(245,224,160,.7); border-color: var(--gold); }
   .st-card.collapsed {
-    padding: 5px 8px; margin-bottom: 4px; opacity: .55;
+    padding: 5px 40px 5px 8px; margin-bottom: 4px; opacity: .55;
     background: rgba(200,230,200,.45); border-color: rgba(46,125,50,.35);
   }
   .st-card.collapsed .st-detail { display: none; }
   .st-card.hidden { display: none; }
 
   .stamp-btn {
-    flex-shrink:0; width:46px; height:46px; border-radius:50%; border:3px solid;
+    position:absolute; top:8px; right:8px;
+    width:46px; height:46px; border-radius:50%; border:3px solid;
     background:transparent; cursor:pointer; font-size:10px; font-weight:700;
     font-family:'Noto Sans JP',sans-serif; transition:all .25s;
-    display:flex; align-items:center; justify-content:center; text-align:center; line-height:1.2; position:relative;
+    display:flex; align-items:center; justify-content:center; text-align:center; line-height:1.2;
   }
-  .st-card.collapsed .stamp-btn { width:28px; height:28px; font-size:14px; border-width:2px; }
+  .st-card.collapsed .stamp-btn { width:26px; height:26px; font-size:14px; border-width:2px; top:5px; right:6px; }
   .stamp-btn.u { border-color: rgba(139,90,43,.3); color: rgba(139,90,43,.4); }
   .stamp-btn.s { border-color: var(--stamp-green); color: var(--stamp-green); background: rgba(46,125,50,.1); transform:rotate(-5deg); box-shadow:0 0 8px rgba(46,125,50,.3); font-size:18px; }
   .stamp-btn.s::after { content:''; position:absolute; inset:-2px; border:1px dashed var(--stamp-green); border-radius:50%; opacity:.5; }
@@ -156,12 +157,12 @@
   @keyframes stampIn { 0%{transform:scale(2) rotate(-15deg);opacity:0} 60%{transform:scale(.9) rotate(-3deg)} 100%{transform:scale(1) rotate(-5deg);opacity:1} }
   .stamp-btn.s { animation: stampIn .35s ease forwards; }
 
-  .st-info { flex:1; min-width:0; }
+  .st-info { }
   .st-head { display:flex; align-items:baseline; gap:6px; flex-wrap:wrap; margin-bottom:2px; }
   .st-num { font-size:9px; font-weight:700; color:var(--map-blue); background:rgba(26,74,122,.1); border:1px solid var(--map-blue); border-radius:2px; padding:1px 3px; flex-shrink:0; }
   .st-name { font-size:14px; font-weight:900; color:var(--ink); }
-  .st-km { font-size:10px; color:var(--brown); margin-left:auto; white-space:nowrap; }
-  .st-time { font-size:10px; color:var(--map-blue); font-weight:700; }
+  .st-km { font-size:10px; color:var(--brown); white-space:nowrap; margin-left:6px; }
+  .st-time { font-size:10px; color:var(--map-blue); font-weight:700; display:inline; }
   .trivia { font-size:9.5px; color:var(--brown); background:rgba(139,90,43,.07); border-left:2px solid var(--gold); padding:3px 5px; margin-top:3px; border-radius:0 2px 2px 0; line-height:1.5; }
   .trivia-lbl { font-size:8px; font-weight:700; color:var(--gold); display:block; margin-bottom:1px; }
   .st-memo { font-size:9px; color:var(--green); font-weight:700; margin-top:2px; }
@@ -500,17 +501,17 @@ ST.forEach((s, i) => {
   }).join('');
   const d = document.createElement('div');
   d.className = 'st-card'; d.id = 'st' + i;
+  const triProse = s.tri.replace(/^・/, '').replace(/<br>・/g, '。');
   d.innerHTML = `
     <button class="stamp-btn u" onclick="tap(${i})">到着<br>スタンプ</button>
     <div class="st-info">
       <div class="st-head">
         <span class="st-num">No.${i+1}</span>
         <span class="st-name">${s.n}駅${badges}</span>
-        <span class="st-km">${s.km}km</span>
       </div>
       <div class="st-detail">
-        <div class="st-time">⏱ ${s.t}</div>
-        <div class="trivia"><span class="trivia-lbl">📖 トリビア</span>${s.tri}</div>
+        <div><span class="st-time">⏱ ${s.t}</span><span class="st-km">${s.km}km</span></div>
+        <div class="trivia"><span class="trivia-lbl">📖 トリビア</span>${triProse}</div>
         ${s.m ? `<div class="st-memo">▶ ${s.m}</div>` : ''}
       </div>
     </div>`;
