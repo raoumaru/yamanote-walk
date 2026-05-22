@@ -56,9 +56,11 @@
   }
   #setup-confirm-btn:active { opacity: .8; }
   #setup-time {
-    width: 100%; padding: 8px 10px; border: 1.5px solid var(--gold); border-radius: 4px;
+    display: block; width: 100%; padding: 8px 10px;
+    border: 1.5px solid var(--gold); border-radius: 4px;
     background: white; font-family: 'Noto Sans JP', sans-serif; font-size: 13px;
     color: var(--ink); box-sizing: border-box;
+    -webkit-appearance: none; appearance: none;
   }
   .lunch-noon-header {
     font-size: 10px; border-radius: 4px; padding: 7px 10px; margin-bottom: 10px;
@@ -290,7 +292,7 @@
       </button>
     </div>
 
-    <button id="setup-confirm-btn" onclick="confirmSetup()">⚔ 冒険を始める！</button>
+    <button id="setup-confirm-btn" onclick="confirmSetup()">🚶 山手線ウォークを始める！</button>
   </div>
 </div>
 
