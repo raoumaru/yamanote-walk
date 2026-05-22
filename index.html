@@ -55,6 +55,17 @@
     box-shadow: 0 3px 10px rgba(178,34,34,.4); transition: opacity .2s;
   }
   #setup-confirm-btn:active { opacity: .8; }
+  #setup-time {
+    width: 100%; padding: 8px 10px; border: 1.5px solid var(--gold); border-radius: 4px;
+    background: white; font-family: 'Noto Sans JP', sans-serif; font-size: 15px;
+    color: var(--ink); appearance: auto;
+  }
+  .lunch-noon-header {
+    font-size: 10px; border-radius: 4px; padding: 7px 10px; margin-bottom: 10px;
+    line-height: 1.5; text-align: center;
+  }
+  .lunch-noon-header.match { background: rgba(45,90,27,.1); border: 1px solid rgba(45,90,27,.35); color: var(--green); }
+  .lunch-noon-header.note  { background: rgba(139,90,43,.08); border: 1px solid rgba(139,90,43,.25); color: var(--brown); }
 
   /* ── STICKY PROGRESS HEADER ── */
   #sticky-header {
@@ -264,6 +275,9 @@
     <div class="setup-label">出発駅を選ぶ</div>
     <select id="setup-start-sel"></select>
 
+    <div class="setup-label">出発時刻</div>
+    <input type="time" id="setup-time" value="07:00">
+
     <div class="setup-label">方向を選ぶ</div>
     <div id="setup-dir-btns">
       <button class="dir-btn active" data-dir="outer">
@@ -339,6 +353,7 @@
     <div class="card" style="border-color:var(--green);">
       <div class="sec-title" style="color:var(--green);">🍜 昼食</div>
       <p style="font-size:9px;color:var(--brown);text-align:center;margin-bottom:10px;">腹八分目を守り、後半の冒険に備えよ。蕎麦・うどんが上策なり。</p>
+      <div id="lunch-header" class="lunch-noon-header"></div>
       <div class="lunch-grid" id="lunch-grid"></div>
     </div>
   </div>

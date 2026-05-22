@@ -5,9 +5,10 @@ const SETUP_KEY  = 'yamanote_setup_v1';
 const STAMP_KEY  = 'yamanote_stamped_v2';
 
 // ── アプリ状態 ──
-let config    = { start: 0, dir: 'outer' };
+let config    = { start: 0, dir: 'outer', depart: '07:00' };
 let route     = [];   // 外回り/内回り・出発駅に応じた ST インデックス順
 let routeKms  = [];   // route[i] に到達するまでの累積km
+let routeMins = [];   // route[i] に到達するまでの累積分数（出発からの相対）
 const stamped = new Set();
 let filterOn  = false;
 let restoring = false;
@@ -20,10 +21,10 @@ let restoring = false;
     if (s) JSON.parse(s).forEach(i => stamped.add(Number(i)));
   } catch(e) {}
 
-  // 設定読み込み
+  // 設定読み込み（旧データとの互換性のため depart が無ければデフォルト維持）
   const savedCfg = localStorage.getItem(SETUP_KEY);
   if (savedCfg) {
-    try { config = JSON.parse(savedCfg); } catch(e) {}
+    try { config = { ...config, ...JSON.parse(savedCfg) }; } catch(e) {}
   }
 
   // セットアップUIの選択肢を構築
@@ -49,6 +50,8 @@ function buildSetupOptions() {
   });
   sel.value = config.start;
 
+  document.getElementById('setup-time').value = config.depart || '07:00';
+
   document.querySelectorAll('.dir-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.dir-btn').forEach(b => b.classList.remove('active'));
@@ -61,27 +64,32 @@ function buildSetupOptions() {
 
 // ── セットアップ確定 ──
 function confirmSetup() {
-  const newStart = parseInt(document.getElementById('setup-start-sel').value);
-  const newDir   = (document.querySelector('.dir-btn.active') || {}).dataset?.dir || 'outer';
-  const changed  = newStart !== config.start || newDir !== config.dir;
+  const newStart  = parseInt(document.getElementById('setup-start-sel').value);
+  const newDir    = (document.querySelector('.dir-btn.active') || {}).dataset?.dir || 'outer';
+  const newDepart = document.getElementById('setup-time').value || '07:00';
 
-  if (changed && stamped.size > 0) {
+  const routeChanged  = newStart !== config.start || newDir !== config.dir;
+  const departChanged = newDepart !== (config.depart || '07:00');
+  const anyChanged    = routeChanged || departChanged;
+
+  if (routeChanged && stamped.size > 0) {
     if (!confirm('出発設定を変更すると、現在のスタンプ記録がリセットされます。よろしいですか？')) return;
     stamped.clear();
     saveStamps();
   }
 
-  config = { start: newStart, dir: newDir };
+  config = { start: newStart, dir: newDir, depart: newDepart };
   localStorage.setItem(SETUP_KEY, JSON.stringify(config));
   document.getElementById('setup-modal').style.display = 'none';
 
-  if (changed) {
-    // 駅カードを再構築
+  if (anyChanged) {
     document.getElementById('station-list').innerHTML = '';
     document.getElementById('ms-grid').innerHTML = '';
+    document.getElementById('lunch-grid').innerHTML = '';
     buildRoute();
     buildMilestones();
     buildStations();
+    buildLunch();
     updateHeaderLabels();
     restoreUI();
   } else {
@@ -92,6 +100,7 @@ function confirmSetup() {
 // ── セットアップモーダルを開く（設定変更） ──
 function openSetup() {
   document.getElementById('setup-start-sel').value = config.start;
+  document.getElementById('setup-time').value = config.depart || '07:00';
   const btn = document.querySelector(`.dir-btn[data-dir="${config.dir}"]`);
   if (btn) {
     document.querySelectorAll('.dir-btn').forEach(b => b.classList.remove('active'));
@@ -123,8 +132,10 @@ function buildRoute() {
       : (config.start - i + n) % n);
   }
   routeKms = [0];
+  routeMins = [0];
   for (let i = 0; i < n - 1; i++) {
     routeKms.push(routeKms[i] + adjDist(route[i], route[i + 1]));
+    routeMins.push(routeMins[i] + adjTime(route[i], route[i + 1]));
   }
 }
 
@@ -134,6 +145,21 @@ function adjDist(a, b) {
   if ((a + 1) % n === b) return SEG[a];  // 外回り方向
   if ((b + 1) % n === a) return SEG[b];  // 内回り方向
   return 0;
+}
+
+// ── 隣接駅間所要時間（分） ──
+function adjTime(a, b) {
+  const n = ST.length;
+  if ((a + 1) % n === b) return SEGT[a];
+  if ((b + 1) % n === a) return SEGT[b];
+  return 0;
+}
+
+// ── 出発時刻 + オフセット分 → "HH:MM" ──
+function fmtTime(departStr, offsetMin) {
+  const [h, m] = (departStr || '07:00').split(':').map(Number);
+  const total  = h * 60 + m + offsetMin;
+  return String(Math.floor(total / 60) % 24).padStart(2, '0') + ':' + String(total % 60).padStart(2, '0');
 }
 
 // ── 実際に歩いたkm（連続してスタンプされたセグメントの合計） ──
@@ -151,9 +177,9 @@ function calcWalkedKm() {
 function updateHeaderLabels() {
   const startName = ST[route[0]].n;
   const dirLabel  = config.dir === 'outer' ? '外回り' : '内回り';
-  document.getElementById('prog-start').textContent = startName + ' 出発';
+  document.getElementById('prog-start').textContent = startName + ' ' + (config.depart || '07:00') + '出発';
   document.getElementById('prog-goal').textContent  = startName + ' ゴール';
-  document.getElementById('cover-sub').textContent  = startName + 'より出立・' + dirLabel;
+  document.getElementById('cover-sub').textContent  = startName + 'より' + (config.depart || '07:00') + '出発・' + dirLabel;
 }
 
 // ── マイルストーン構築 ──
@@ -188,6 +214,7 @@ function buildStations() {
     }).join('');
 
     const triProse = s.tri.replace(/^・/, '').replace(/<br>・/g, '。');
+    const arrivalTime = fmtTime(config.depart, routeMins[routePos]);
 
     const d = document.createElement('div');
     d.className = 'st-card';
@@ -200,7 +227,7 @@ function buildStations() {
           <span class="st-name">${s.n}駅${badgeHtml}</span>
         </div>
         <div class="st-detail">
-          <div><span class="st-time">⏱ ${s.t}</span><span class="st-km">${km.toFixed(1)}km</span></div>
+          <div><span class="st-time">⏱ ${arrivalTime}</span><span class="st-km">${km.toFixed(1)}km</span></div>
           <div class="trivia"><span class="trivia-lbl">📖 トリビア</span>${triProse}</div>
           ${s.m ? `<div class="st-memo">▶ ${s.m}</div>` : ''}
         </div>
@@ -212,7 +239,37 @@ function buildStations() {
 // ── 昼食カード構築 ──
 function buildLunch() {
   const grid = document.getElementById('lunch-grid');
-  LUNCH.forEach(l => {
+  grid.innerHTML = '';
+
+  // 12:00に最も近いルート上の駅を特定
+  const [h, m] = (config.depart || '07:00').split(':').map(Number);
+  const departMin = h * 60 + m;
+  let noonRoutePos = 0, minDiff = Infinity;
+  for (let i = 0; i < route.length; i++) {
+    const diff = Math.abs(departMin + routeMins[i] - 720);
+    if (diff < minDiff) { minDiff = diff; noonRoutePos = i; }
+  }
+  const noonStIdx   = route[noonRoutePos];
+  const noonArrival = fmtTime(config.depart, routeMins[noonRoutePos]);
+
+  // 12:00駅から±5駅以内のランチ候補を抽出
+  const nearby = LUNCH.filter(l => {
+    const lPos = route.indexOf(l.si);
+    return lPos !== -1 && Math.abs(lPos - noonRoutePos) <= 5;
+  });
+  const toShow = nearby.length > 0 ? nearby : LUNCH;
+
+  // ヘッダーを更新
+  const header = document.getElementById('lunch-header');
+  if (nearby.length > 0) {
+    header.innerHTML = `📍 <strong>${ST[noonStIdx].n}駅</strong>付近を12:00ごろ（${noonArrival}）通過 — ルート沿いの候補`;
+    header.className = 'lunch-noon-header match';
+  } else {
+    header.innerHTML = `📍 12:00ごろ（${noonArrival}）は<strong>${ST[noonStIdx].n}駅</strong>付近。昼時に上野・日暮里エリアを通らないため全候補を表示`;
+    header.className = 'lunch-noon-header note';
+  }
+
+  toShow.forEach(l => {
     const d = document.createElement('div');
     d.className = 'l-card' + (l.local ? ' local' : '');
     const badge = l.local ? `<span class="l-local-badge">⭐ 地元名店</span>` : '';
