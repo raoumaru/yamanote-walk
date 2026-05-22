@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>山手線 冒険の旅しおり</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap');
+  :root {
+    --parchment: #f5e6c8; --parchment2: #ede0b0; --ink: #2a1a00;
+    --red: #b22222; --gold: #c8920a; --gold2: #e8b400;
+    --green: #2d5a1b; --brown: #6b3a1f; --stamp-green: #2e7d32;
+    --map-blue: #1a4a7a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #1a1008; font-family: 'Noto Sans JP', sans-serif; color: var(--ink); padding-bottom: 64px; }
+
+  /* ── STICKY PROGRESS HEADER ── */
+  #sticky-header {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(20,12,4,.97); border-bottom: 1.5px solid var(--gold);
+    padding: 8px 12px;
+  }
+  .prog-wrap { background: rgba(139,90,43,.15); border: 1px solid var(--gold); border-radius: 20px; height: 18px; overflow: hidden; }
+  #prog-bar { height: 100%; background: linear-gradient(90deg, var(--green), var(--gold2)); border-radius: 20px; transition: width .6s ease; width: 0%; display:flex; align-items:center; justify-content:flex-end; padding-right:6px; }
+  #prog-bar span { font-size: 9px; color: white; font-weight: 700; }
+  .prog-info { display:flex; justify-content:space-between; font-size: 10px; color: rgba(200,146,10,.8); margin-top: 4px; }
+
+  /* ── TAB CONTENT ── */
+  .tab-content { display: none; padding: 12px; }
+  .tab-content.active { display: block; }
+
+  /* ── BOTTOM NAV ── */
+  #bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(20,12,4,.97); border-top: 1.5px solid var(--gold);
+    display: flex; justify-content: space-around; align-items: stretch;
+    z-index: 200;
+  }
+  #bottom-nav button {
+    background: transparent; border: none; border-top: 2px solid transparent;
+    color: rgba(200,146,10,.45); font-family: 'Noto Sans JP', sans-serif;
+    font-size: 9px; padding: 7px 4px 6px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    flex: 1; transition: all .2s;
+  }
+  #bottom-nav button.active { color: var(--gold2); border-top-color: var(--gold2); }
+  #bottom-nav .nav-i { font-size: 20px; line-height: 1; }
+
+  /* ── CARD ── */
+  .card { background: var(--parchment); border: 3px solid var(--gold); border-radius: 4px; padding: 14px; margin-bottom: 14px; box-shadow: 0 4px 20px rgba(0,0,0,0.6); }
+  .sec-title { font-size: 12px; font-weight: 700; color: var(--red); letter-spacing: 3px; text-align: center; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--gold); }
+
+  /* ── HOME: COVER ── */
+  #cover {
+    background: var(--parchment);
+    background-image: repeating-linear-gradient(0deg,transparent,transparent 28px,rgba(139,90,43,.08) 28px,rgba(139,90,43,.08) 29px);
+    border: 6px double var(--gold); border-radius: 4px; padding: 24px 16px;
+    margin-bottom: 14px; text-align: center; position: relative;
+    box-shadow: 0 0 40px rgba(0,0,0,.8), inset 0 0 60px rgba(139,90,43,.15);
+  }
+  .corner { position: absolute; font-size: 22px; color: var(--gold); opacity: .6; }
+  .corner.tl{top:10px;left:10px} .corner.tr{top:10px;right:10px}
+  .corner.bl{bottom:10px;left:10px} .corner.br{bottom:10px;right:10px}
+  .cover-label { font-size: 11px; letter-spacing: 5px; color: var(--brown); margin-bottom: 4px; }
+  .cover-main { font-size: clamp(26px,6vw,40px); font-weight: 900; color: var(--red); text-shadow: 2px 2px 0 var(--gold); line-height: 1.2; }
+  .cover-sub { font-size: 11px; color: var(--brown); letter-spacing: 3px; margin: 6px 0 14px; }
+  .divider { display:flex; align-items:center; gap:8px; margin: 8px 0; }
+  .divider::before,.divider::after { content:''; flex:1; border-top: 1.5px solid var(--gold); }
+  .divider span { color: var(--gold); font-size: 16px; }
+  .stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin: 12px 0; }
+  .stat { background: rgba(139,90,43,.1); border: 1px solid var(--gold); border-radius: 3px; padding: 8px 4px; text-align: center; }
+  .stat-n { font-size: 24px; font-weight: 900; color: var(--red); line-height: 1; }
+  .stat-u { font-size: 10px; color: var(--brown); }
+  .stat-l { font-size: 9px; color: var(--brown); margin-top: 2px; }
+  .cover-quote { font-size: 11px; color: var(--brown); letter-spacing: 2px; font-style: italic; opacity: .8; }
+
+  /* ── HOME: QUICK START BTN ── */
+  #quick-start {
+    display: block; width: 100%; padding: 14px; margin-bottom: 14px;
+    background: var(--red); color: white; font-family: 'Noto Sans JP', sans-serif;
+    font-size: 15px; font-weight: 900; letter-spacing: 2px;
+    border: 2px solid var(--gold); border-radius: 6px; cursor: pointer;
+    box-shadow: 0 4px 16px rgba(178,34,34,.5);
+  }
+
+  /* ── HOME: MILESTONES ── */
+  .ms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px,1fr)); gap: 6px; }
+  .ms { border: 1.5px solid; border-radius: 4px; padding: 6px; text-align: center; transition: all .3s; }
+  .ms.locked { border-color: rgba(139,90,43,.3); background: rgba(139,90,43,.05); opacity: .6; }
+  .ms.unlocked { border-color: var(--gold); background: linear-gradient(135deg,rgba(200,146,10,.1),rgba(200,146,10,.2)); box-shadow: 0 0 10px rgba(200,146,10,.4); }
+  .ms-icon { font-size: 20px; margin-bottom: 2px; }
+  .ms-km { font-size: 15px; font-weight: 900; color: var(--red); }
+  .ms.unlocked .ms-km { color: var(--gold); }
+  .ms-label { font-size: 8px; color: var(--brown); line-height: 1.3; margin-top: 2px; }
+
+  /* ── STATIONS: FILTER BAR ── */
+  .filter-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px; padding: 8px 10px;
+    background: rgba(139,90,43,.1); border: 1px solid rgba(200,146,10,.3); border-radius: 6px;
+  }
+  .filter-bar span { font-size: 11px; color: var(--brown); font-weight: 700; }
+  .toggle-btn {
+    background: rgba(139,90,43,.2); border: 1px solid var(--gold); border-radius: 12px;
+    padding: 4px 12px; font-size: 10px; font-weight: 700; color: var(--brown);
+    cursor: pointer; font-family: 'Noto Sans JP', sans-serif; transition: all .2s;
+  }
+  .toggle-btn.on { background: var(--red); color: white; border-color: var(--red); }
+
+  /* ── STATIONS: HALF LABEL ── */
+  .half { background: var(--map-blue); color: white; font-size: 10px; font-weight: 700; letter-spacing: 2px; text-align: center; padding: 4px; border-radius: 2px; margin-bottom: 8px; }
+  .half.south { background: var(--green); }
+
+  /* ── STATION CARD ── */
+  .st-card {
+    display:flex; align-items:flex-start; gap: 8px; padding: 8px; margin-bottom: 7px;
+    border: 1px solid rgba(139,90,43,.25); border-radius: 4px; background: rgba(255,255,255,.4);
+    transition: all .35s;
+  }
+  .st-card.visited { background: rgba(200,146,10,.12); border-color: var(--gold); }
+  .st-card.collapsed {
+    padding: 5px 8px; margin-bottom: 4px; opacity: .45;
+    background: rgba(46,125,50,.06); border-color: rgba(46,125,50,.25);
+  }
+  .st-card.collapsed .st-detail { display: none; }
+  .st-card.hidden { display: none; }
+
+  .stamp-btn {
+    flex-shrink:0; width:46px; height:46px; border-radius:50%; border:3px solid;
+    background:transparent; cursor:pointer; font-size:10px; font-weight:700;
+    font-family:'Noto Sans JP',sans-serif; transition:all .25s;
+    display:flex; align-items:center; justify-content:center; text-align:center; line-height:1.2; position:relative;
+  }
+  .st-card.collapsed .stamp-btn { width:28px; height:28px; font-size:14px; border-width:2px; }
+  .stamp-btn.u { border-color: rgba(139,90,43,.3); color: rgba(139,90,43,.4); }
+  .stamp-btn.s { border-color: var(--stamp-green); color: var(--stamp-green); background: rgba(46,125,50,.1); transform:rotate(-5deg); box-shadow:0 0 8px rgba(46,125,50,.3); font-size:18px; }
+  .stamp-btn.s::after { content:''; position:absolute; inset:-2px; border:1px dashed var(--stamp-green); border-radius:50%; opacity:.5; }
+  .stamp-btn:hover { transform: scale(1.05) rotate(-3deg); }
+  .stamp-btn.s:hover { transform: scale(1.08) rotate(-5deg); }
+  @keyframes stampIn { 0%{transform:scale(2) rotate(-15deg);opacity:0} 60%{transform:scale(.9) rotate(-3deg)} 100%{transform:scale(1) rotate(-5deg);opacity:1} }
+  .stamp-btn.s { animation: stampIn .35s ease forwards; }
+
+  .st-info { flex:1; min-width:0; }
+  .st-head { display:flex; align-items:baseline; gap:6px; flex-wrap:wrap; margin-bottom:2px; }
+  .st-num { font-size:9px; font-weight:700; color:var(--map-blue); background:rgba(26,74,122,.1); border:1px solid var(--map-blue); border-radius:2px; padding:1px 3px; flex-shrink:0; }
+  .st-name { font-size:14px; font-weight:900; color:var(--ink); }
+  .st-km { font-size:10px; color:var(--brown); margin-left:auto; white-space:nowrap; }
+  .st-time { font-size:10px; color:var(--map-blue); font-weight:700; }
+  .trivia { font-size:9.5px; color:var(--brown); background:rgba(139,90,43,.07); border-left:2px solid var(--gold); padding:3px 5px; margin-top:3px; border-radius:0 2px 2px 0; line-height:1.5; }
+  .trivia-lbl { font-size:8px; font-weight:700; color:var(--gold); display:block; margin-bottom:1px; }
+  .st-memo { font-size:9px; color:var(--green); font-weight:700; margin-top:2px; }
+  .badge { display:inline-block; font-size:8px; font-weight:700; padding:1px 4px; border-radius:2px; margin-left:3px; vertical-align:middle; }
+  .badge.start,.badge.goal { background:var(--red); color:white; }
+  .badge.rest { background:var(--gold); color:white; }
+  .badge.milestone { background:var(--map-blue); color:white; }
+  .hr-dashed { border:none; border-top:1px dashed rgba(139,90,43,.3); margin:10px 0; }
+
+  /* ── GOURMET ── */
+  .lunch-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+  @media(max-width:400px){.lunch-grid{grid-template-columns:1fr}}
+  .l-card { border:1px solid rgba(45,90,27,.3); border-radius:4px; padding:8px; background:rgba(255,255,255,.5); }
+  .l-name { font-size:12px; font-weight:700; color:var(--ink); }
+  .l-genre { font-size:9px; color:white; background:var(--green); border-radius:2px; padding:1px 4px; display:inline-block; margin:2px 0; }
+  .l-rec { font-size:10px; color:var(--brown); font-weight:700; margin-bottom:2px; }
+  .l-desc { font-size:9px; color:var(--brown); line-height:1.5; }
+
+  /* ── MAP LINK BUTTON ── */
+  .map-btn { display:block; margin-top:6px; text-align:center; font-size:9px; font-weight:700; color:var(--map-blue); background:rgba(26,74,122,.08); border:1px solid rgba(26,74,122,.3); border-radius:4px; padding:4px; text-decoration:none; }
+  .map-btn:active { background:rgba(26,74,122,.18); }
+
+  /* ── ITEMS (持ち物) ── */
+  .items-section { margin-bottom: 14px; }
+  .items-label { display:inline-block; font-size:10px; font-weight:900; letter-spacing:2px; padding:3px 10px; border-radius:3px; margin-bottom:8px; }
+  .items-label.must { background:var(--red); color:white; }
+  .items-label.nice { background:var(--map-blue); color:white; }
+  .items-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
+  .item { display:flex; flex-direction:column; align-items:center; gap:5px; padding:10px 4px 8px; border-radius:6px; text-align:center; }
+  .item.must { background:rgba(178,34,34,.07); border:1.5px solid rgba(178,34,34,.25); }
+  .item.nice { background:rgba(26,74,122,.06); border:1.5px solid rgba(26,74,122,.2); }
+  .item-icon { font-size:26px; line-height:1; }
+  .item-name { font-size:9px; font-weight:700; color:var(--ink); line-height:1.4; }
+
+  /* ── TOAST ── */
+  #toast { position:fixed; bottom:72px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--ink); color:var(--gold2); font-size:12px; font-weight:700; padding:8px 18px; border-radius:4px; border:1px solid var(--gold); transition:transform .4s ease; z-index:999; white-space:nowrap; pointer-events:none; }
+  #toast.show { transform:translateX(-50%) translateY(0); }
+
+  /* ── CONFETTI ── */
+  #confetti-canvas { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:998; }
+
+  footer { text-align:center; color:rgba(245,230,200,.4); font-size:10px; padding:10px 0 16px; letter-spacing:2px; }
+</style>
+</head>
+<body>
+
+<!-- STICKY PROGRESS HEADER (always visible) -->
+<div id="sticky-header">
+  <div class="prog-wrap"><div id="prog-bar"><span id="prog-pct">0%</span></div></div>
+  <div class="prog-info">
+    <span>渋谷 出発</span>
+    <span><span id="prog-s">0</span>/30駅 ｜ <span id="prog-km" style="color:var(--gold2);font-weight:700;">0</span>km</span>
+    <span>渋谷 ゴール</span>
+  </div>
+</div>
+
+<!-- ══ TAB: ホーム ══ -->
+<div id="tab-home" class="tab-content active">
+  <div id="cover">
+    <div class="corner tl">✦</div><div class="corner tr">✦</div>
+    <div class="corner bl">✦</div><div class="corner br">✦</div>
+    <div class="cover-label">— 冒険の記録 —</div>
+    <div class="cover-main">山手線<br>一周徒歩の旅</div>
+    <div class="cover-sub">渋谷より出立・新宿方向へ</div>
+    <div class="divider"><span>⬡</span></div>
+    <div class="stats">
+      <div class="stat"><div class="stat-n">34</div><div class="stat-u">km</div><div class="stat-l">総距離</div></div>
+      <div class="stat"><div class="stat-n">30</div><div class="stat-u">駅</div><div class="stat-l">チェックポイント</div></div>
+      <div class="stat"><div class="stat-n">12</div><div class="stat-u">時間</div><div class="stat-l">大冒険</div></div>
+    </div>
+    <div class="divider"><span>⬡</span></div>
+    <div class="cover-quote">「一歩一歩が、伝説になる。」</div>
+  </div>
+
+  <button id="quick-start" onclick="showTab('stations')">⚔ 冒険を続ける →</button>
+
+  <div class="card">
+    <div class="sec-title">🏆 距離マイルストーン</div>
+    <div class="ms-grid" id="ms-grid"></div>
+  </div>
+
+  <footer>― 山手線一周徒歩の旅しおり ― 令和の大冒険 ―<br>
+  <button onclick="resetAll()" style="margin-top:10px;background:transparent;border:1px solid rgba(245,230,200,0.3);color:rgba(245,230,200,0.4);font-size:10px;padding:4px 14px;border-radius:3px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">スタンプをリセット</button>
+  </footer>
+</div>
+
+<!-- ══ TAB: 駅スタンプ ══ -->
+<div id="tab-stations" class="tab-content">
+  <div class="filter-bar">
+    <span>📍 チェックポイント</span>
+    <button class="toggle-btn" id="filter-btn" onclick="toggleFilter()">未訪問のみ</button>
+  </div>
+  <div class="half">【前半】北半周　渋谷 → 田端</div>
+  <div id="north"></div>
+  <hr class="hr-dashed">
+  <div class="half south">【後半】南半周　田端 → 渋谷</div>
+  <div id="south"></div>
+</div>
+
+<!-- ══ TAB: グルメ ══ -->
+<div id="tab-gourmet" class="tab-content">
+  <div class="card" style="border-color:var(--green);">
+    <div class="sec-title" style="color:var(--green);">🍜 昼餉の章　― 谷中銀座 ―</div>
+    <p style="font-size:9px;color:var(--brown);text-align:center;margin-bottom:10px;">腹八分目を守り、後半の冒険に備えよ。蕎麦・うどんが上策なり。</p>
+    <div class="lunch-grid" id="lunch-grid"></div>
+  </div>
+</div>
+
+<!-- ══ TAB: 持ち物 ══ -->
+<div id="tab-tips" class="tab-content">
+  <div class="card">
+    <div class="sec-title">🎒 持ち物リスト</div>
+    <div class="items-section">
+      <div class="items-label must">★ 必須</div>
+      <div id="items-must"></div>
+    </div>
+    <div class="items-section">
+      <div class="items-label nice">◎ あると安心</div>
+      <div id="items-nice"></div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav id="bottom-nav">
+  <button id="nav-home" class="active" onclick="showTab('home')">
+    <span class="nav-i">🏠</span>ホーム
+  </button>
+  <button id="nav-stations" onclick="showTab('stations')">
+    <span class="nav-i">🗺</span>駅スタンプ
+  </button>
+  <button id="nav-gourmet" onclick="showTab('gourmet')">
+    <span class="nav-i">🍜</span>グルメ
+  </button>
+  <button id="nav-tips" onclick="showTab('tips')">
+    <span class="nav-i">🎒</span>持ち物
+  </button>
+</nav>
+
+<canvas id="confetti-canvas"></canvas>
+<div id="toast"></div>
+
+<script>
+const ST = [
+  {n:"渋谷",km:0,t:"07:00",tri:"ハチ公像のモデルは秋田犬。1925年から1934年まで毎日主人を待ち続けた。乗降客数は山手線3位。",m:"スタート！ハチ公口より出発",b:["start"]},
+  {n:"原宿",km:2.0,t:"07:35",tri:"明治神宮は1920年創建。境内の森は約100年で人工林から自然林へと進化した奇跡の森。竹下通りは年間約1000万人が訪れる。",m:"明治神宮・竹下通りそば"},
+  {n:"代々木",km:3.5,t:"08:05",tri:"代々木公園は1964年東京五輪の選手村跡地。面積54haは都内最大級。「代々木」という巨大な欅の木が名前の由来。",m:"代々木公園沿い"},
+  {n:"新宿",km:4.5,t:"08:20",tri:"乗降客数1日約200万人でギネス認定・世界一！改札口は約200か所、出口は約60か所。迷子続出の魔境。",m:"休憩15分 ★補給推奨",b:["rest"]},
+  {n:"新大久保",km:5.7,t:"08:55",tri:"多国籍エリアで50カ国以上の料理が食べられる。1999年ごろから韓国文化の発信地に変貌した。"},
+  {n:"高田馬場",km:6.9,t:"09:15",tri:"発車メロディは「鉄腕アトム」！手塚治虫プロダクション最寄り駅だった縁から。江戸時代は馬術の練習場だった。"},
+  {n:"目白",km:8.1,t:"09:35",tri:"かつて徳川将軍家の鷹狩り場。学習院大学最寄りで皇族・財閥の屋敷が多く「山の手の山の手」と呼ばれた。"},
+  {n:"池袋",km:9.3,t:"10:00",tri:"乗降客数は世界2位（東京駅より多い）！「池」があり「袋」状の地形だったことが地名の由来。西武・東武が対峙する百貨店戦争の地。",m:"休憩15分 ★百貨店で補給",b:["rest","milestone"]},
+  {n:"大塚",km:11.2,t:"10:45",tri:"都電荒川線（さくらトラム）が交差する。都電は東京に唯一残る路面電車。地名は古墳（塚）があったことに由来。"},
+  {n:"巣鴨",km:12.4,t:"11:05",tri:"「おばあちゃんの原宿」として有名。とげぬき地蔵（高岩寺）の洗い観音は行列必至。江戸時代は宿場町だった。"},
+  {n:"駒込",km:13.5,t:"11:25",tri:"山手線唯一の踏切「第二中里踏切」が近くにある！「駒込土筆」は江戸から有名な名産品。高級住宅街の代名詞。",b:["milestone"]},
+  {n:"田端",km:14.8,t:"11:50",tri:"山手線の正式な終点はここ！田端から東京は実は「東北本線」。芥川龍之介・室生犀星ら文豪が多く住んだ文士村。",m:"北端・折り返しポイント"},
+  {n:"西日暮里",km:15.5,t:"13:00",tri:"1971年開業、山手線29番目の駅（当時）。道灌山は江戸時代の景勝地。午後1時に再出発！",m:"再出発！午後の冒険へ",b:["milestone"]},
+  {n:"日暮里",km:16.1,t:"13:15",tri:"「日暮里」は「新堀（にいほり）」が転じた地名。繊維問屋街として有名。夕やけだんだんからの夕日は絶景。"},
+  {n:"鶯谷",km:17.0,t:"13:30",tri:"山手線で1日の乗降客数が最も少ない駅（約1.6万人）。新宿の約80分の1！松尾芭蕉も愛した風雅な土地。"},
+  {n:"上野",km:17.9,t:"13:50",tri:"1883年開業の歴史ある北の玄関口。東北・北陸への寝台列車が発着した。上野公園は日本初の公園のひとつ（1873年）。",m:"休憩10分 ★上野公園",b:["rest","milestone"]},
+  {n:"御徒町",km:18.7,t:"14:20",tri:"アメ横（アメヤ横丁）は終戦後の闇市が起源。約400店が軒を連ねる約500mの商店街。年末のにぎわいは風物詩。"},
+  {n:"秋葉原",km:19.7,t:"14:40",tri:"戦後は電気街として発展し今や世界的なアニメ・マンガ聖地に。語源は1869年の大火後に建てられた「秋葉神社」から。"},
+  {n:"神田",km:21.0,t:"15:00",tri:"世界最大の古書店街「神田神保町」の最寄り。約180店が集まる。江戸時代は江戸城の外堀の役割を果たした神田川が流れる。"},
+  {n:"東京",km:22.3,t:"15:25",tri:"1914年開業の赤レンガ駅舎は重要文化財。設計者は辰野金吾。地下には巨大な地下街が広がり、まるで地下都市！",m:"休憩15分 ★赤レンガ駅舎",b:["rest","milestone"]},
+  {n:"有楽町",km:23.4,t:"16:05",tri:"「有楽町で逢いましょう」の歌で有名。織田信長の弟・織田長益（有楽斎）の屋敷があったことが地名の由来。"},
+  {n:"新橋",km:24.6,t:"16:20",tri:"日本初の鉄道（新橋〜横浜間）が1872年に開通した鉄道発祥の地！SL広場のD51機関車は1945年製。"},
+  {n:"浜松町",km:26.0,t:"16:40",tri:"東京モノレールの起点駅。小便小僧は1952年設置で毎月衣装が変わる。世界貿易センタービルの最寄り。"},
+  {n:"田町",km:27.4,t:"17:00",tri:"慶應義塾大学三田キャンパスの最寄り。幕末に勝海舟と西郷隆盛が会談した地が近く、江戸城無血開城の舞台裏。",b:["milestone"]},
+  {n:"高輪GW",km:28.3,t:"17:20",tri:"2020年開業、山手線30番目の最新駅。駅名公募では「高輪」が1位だったが落選し大騒ぎに。設計は隈研吾。"},
+  {n:"品川",km:29.2,t:"17:40",tri:"品川駅は品川区ではなく港区にある！日本最初の鉄道駅のひとつ（1872年）。リニア予定地として再開発が進む。",m:"休憩10分 ★足の状態確認！",b:["rest","milestone"]},
+  {n:"大崎",km:31.1,t:"18:20",tri:"山手線の車両基地がある駅。つまり山手線の電車はここから毎朝出発する！再開発で「おしゃれタウン」に変貌。"},
+  {n:"五反田",km:32.3,t:"18:40",tri:"「五反田」の地名は江戸時代に5反（約4,900㎡）の田んぼがあったことから。あと2駅、気力を振り絞れ！"},
+  {n:"目黒",km:33.5,t:"19:00",tri:"目黒不動尊（瀧泉寺）は関東三大不動のひとつ。目黒川の桜並木は春の絶景。「目黒のさんま」の落語でも有名。"},
+  {n:"恵比寿",km:34.0,t:"19:20",tri:"発車メロディは映画「第三の男」のテーマ。エビスビール工場があった縁から。ヱビスGPがかつての工場跡地。あと1駅！",b:["milestone"]},
+  {n:"渋谷",km:34.5,t:"19:45",tri:"ゴール！山手線一周34.5km、大冒険を完遂！ハチ公に帰還の報告を忘れずに。あなたは伝説の冒険者だ！",m:"ゴール！伝説達成！！",b:["goal"]},
+];
+
+const MS = [
+  {km:5,   icon:"🌟", label:"5km達成!\n富士5合目相当"},
+  {km:10,  icon:"⚔️", label:"10km突破!\n東京↔横浜の距離"},
+  {km:15,  icon:"🏔️", label:"15km制覇!\n皇居3周分を歩破！"},
+  {km:20,  icon:"🌊", label:"20km到達!\n箱根駅伝1区間と同等！"},
+  {km:25,  icon:"🔥", label:"25km突破!\n渋谷〜横浜を踏破！"},
+  {km:30,  icon:"👑", label:"30km制覇!\nマラソン魔の30km壁突破！"},
+  {km:34.5,icon:"🎉", label:"34.5km完歩!\n山手線一周達成！"},
+];
+
+const LUNCH = [
+  {n:"川むら",g:"蕎麦",a:"日暮里駅徒歩3分",r:"もり蕎麦・せいろ",d:"明治5年創業の老舗。あっさり出汁が疲れた体に染みる。消化よく後半の歩行に最適。",url:"https://www.google.com/maps/search/川むら+蕎麦+日暮里"},
+  {n:"長生庵",g:"蕎麦",a:"谷中銀座内",r:"ざる蕎麦・かけ蕎麦",d:"120年の歴史を誇る名店。BGMなしの静かな店内でゆっくり足を休めよ。",url:"https://www.google.com/maps/search/長生庵+蕎麦+谷中"},
+  {n:"めん処かみや",g:"蕎麦",a:"西日暮里駅徒歩1分",r:"天ざるそば 約950円",d:"コスパ最強ランチ。天ぷらは軽く胃もたれしない。財布にも足にも優しい。",url:"https://www.google.com/maps/search/めん処かみや+西日暮里"},
+  {n:"金澤亭",g:"創作うどん",a:"千駄木駅徒歩3分",r:"釜玉・ネバネバうどん",d:"量が調節しやすく食べすぎを防げる。仲間と違う品をシェアも良し。",url:"https://www.google.com/maps/search/金澤亭+うどん+千駄木"},
+  {n:"レストランザクロ",g:"中東料理",a:"谷中銀座内",r:"ランチセット",d:"トルコ・イラン料理の異色の一軒。米中心でエネルギー補給に優れる珍店。",url:"https://www.google.com/maps/search/レストランザクロ+谷中銀座"},
+];
+
+const ITEMS = {
+  must: [
+    {i:"💧", n:"水・スポドリ\n500ml×2本+"},
+    {i:"🧂", n:"塩分タブレット"},
+    {i:"👟", n:"クッション系\nスニーカー"},
+    {i:"🩹", n:"靴擦れ防止\nパッド"},
+    {i:"📱", n:"モバイル\nバッテリー"},
+    {i:"💳", n:"ICカード\n(Suica等)"},
+  ],
+  nice: [
+    {i:"🧢", n:"帽子"},
+    {i:"🕶️", n:"サングラス"},
+    {i:"🧴", n:"日焼け止め"},
+    {i:"💊", n:"痛み止め\n・絆創膏"},
+    {i:"🧦", n:"替えの靴下"},
+    {i:"☔", n:"折りたたみ傘"},
+  ],
+};
+
+/* ── localStorage ── */
+const STORAGE_KEY = 'yamanote_stamped_v1';
+const stamped = new Set();
+try {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) JSON.parse(saved).forEach(i => stamped.add(Number(i)));
+} catch(e) {}
+function saveStamps() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify([...stamped])); } catch(e) {}
+}
+
+let filterOn = false;
+
+/* ── TAB SWITCH ── */
+function showTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('#bottom-nav button').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+/* ── BUILD MILESTONES ── */
+MS.forEach(m => {
+  const d = document.createElement('div');
+  d.className = 'ms locked'; d.id = 'ms' + m.km;
+  d.innerHTML = `<div class="ms-icon">🔒</div><div class="ms-km">${m.km}km</div><div class="ms-label">${m.label.replace('\n','<br>')}</div>`;
+  document.getElementById('ms-grid').appendChild(d);
+});
+
+/* ── BUILD STATIONS ── */
+ST.forEach((s, i) => {
+  const badges = (s.b||[]).map(b => {
+    const lbl = {start:'スタート',rest:'休憩',goal:'ゴール！',milestone:'里程標'};
+    return `<span class="badge ${b}">${lbl[b]}</span>`;
+  }).join('');
+  const d = document.createElement('div');
+  d.className = 'st-card'; d.id = 'st' + i;
+  d.innerHTML = `
+    <button class="stamp-btn u" onclick="tap(${i})">到着<br>スタンプ</button>
+    <div class="st-info">
+      <div class="st-head">
+        <span class="st-num">No.${i+1}</span>
+        <span class="st-name">${s.n}駅${badges}</span>
+        <span class="st-km">${s.km}km</span>
+      </div>
+      <div class="st-detail">
+        <div class="st-time">⏱ ${s.t}</div>
+        <div class="trivia"><span class="trivia-lbl">📖 トリビア</span>${s.tri}</div>
+        ${s.m ? `<div class="st-memo">▶ ${s.m}</div>` : ''}
+      </div>
+    </div>`;
+  (i <= 11 ? document.getElementById('north') : document.getElementById('south')).appendChild(d);
+});
+
+/* ── BUILD LUNCH ── */
+LUNCH.forEach(l => {
+  const d = document.createElement('div'); d.className = 'l-card';
+  d.innerHTML = `<div class="l-name">${l.n}</div><span class="l-genre">${l.g}</span><span style="font-size:9px;color:var(--brown);margin-left:3px">${l.a}</span><div class="l-rec">推薦：${l.r}</div><div class="l-desc">${l.d}</div><a href="${l.url}" target="_blank" rel="noopener" class="map-btn">📍 地図を開く</a>`;
+  document.getElementById('lunch-grid').appendChild(d);
+});
+
+/* ── BUILD ITEMS ── */
+function buildItems(list, cls, containerId) {
+  const grid = document.createElement('div'); grid.className = 'items-grid';
+  list.forEach(item => {
+    const d = document.createElement('div'); d.className = 'item ' + cls;
+    d.innerHTML = `<div class="item-icon">${item.i}</div><div class="item-name">${item.n.replace('\n','<br>')}</div>`;
+    grid.appendChild(d);
+  });
+  document.getElementById(containerId).appendChild(grid);
+}
+buildItems(ITEMS.must, 'must', 'items-must');
+buildItems(ITEMS.nice, 'nice', 'items-nice');
+
+/* ── STAMP TAP ── */
+function tap(i) {
+  const wasOn = stamped.has(i);
+  wasOn ? stamped.delete(i) : stamped.add(i);
+  saveStamps();
+
+  const card = document.getElementById('st' + i);
+  const btn  = card.querySelector('.stamp-btn');
+  const on   = stamped.has(i);
+
+  btn.className = 'stamp-btn ' + (on ? 's' : 'u');
+  btn.innerHTML = on ? '✔' : '到着<br>スタンプ';
+
+  if (on) {
+    card.classList.add('visited');
+    toast('⚔ ' + ST[i].n + '駅 征服！');
+    setTimeout(() => {
+      card.classList.add('collapsed');
+      applyFilter();
+      setTimeout(scrollToNext, 350);
+    }, 700);
+  } else {
+    card.classList.remove('visited', 'collapsed');
+    applyFilter();
+  }
+
+  updateProg();
+  updateMS();
+}
+
+/* ── SCROLL TO NEXT UNVISITED ── */
+function scrollToNext() {
+  for (let i = 0; i < ST.length; i++) {
+    if (!stamped.has(i)) {
+      const el = document.getElementById('st' + i);
+      if (el && !el.classList.contains('hidden')) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.style.boxShadow = '0 0 18px rgba(200,146,10,.9)';
+        setTimeout(() => { el.style.boxShadow = ''; }, 1600);
+        return;
+      }
+    }
+  }
+  toast('🎉 全駅制覇！おめでとう！');
+}
+
+/* ── FILTER ── */
+function toggleFilter() {
+  filterOn = !filterOn;
+  document.getElementById('filter-btn').classList.toggle('on', filterOn);
+  applyFilter();
+}
+function applyFilter() {
+  ST.forEach((_, i) => {
+    const el = document.getElementById('st' + i);
+    if (!el) return;
+    el.classList.toggle('hidden', filterOn && stamped.has(i));
+  });
+}
+
+/* ── PROGRESS ── */
+function updateProg() {
+  const c = stamped.size, pct = Math.round(c / ST.length * 100);
+  const km = c > 0 ? Math.max(...[...stamped].map(i => ST[i].km)) : 0;
+  document.getElementById('prog-bar').style.width = pct + '%';
+  document.getElementById('prog-pct').textContent = pct + '%';
+  document.getElementById('prog-s').textContent = c;
+  document.getElementById('prog-km').textContent = km.toFixed(1);
+}
+
+/* ── MILESTONES + CONFETTI ── */
+function updateMS() {
+  const km = stamped.size > 0 ? Math.max(...[...stamped].map(i => ST[i].km)) : 0;
+  MS.forEach(m => {
+    const el = document.getElementById('ms' + m.km); if (!el) return;
+    const was = el.classList.contains('unlocked');
+    const now = km >= m.km;
+    if (!was && now) setTimeout(() => { toast('🏆 ' + m.icon + ' ' + m.label.split('\n')[1] + ' 達成！'); launchConfetti(); }, 400);
+    el.className = 'ms ' + (now ? 'unlocked' : 'locked');
+    el.querySelector('.ms-icon').textContent = now ? m.icon : '🔒';
+  });
+}
+
+/* ── CONFETTI ── */
+function launchConfetti() {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const colors = ['#e8b400','#b22222','#2d5a1b','#1a4a7a','#f5e6c8','#ffffff','#ff6b6b'];
+  const pieces = Array.from({length: 150}, () => ({
+    x: Math.random() * canvas.width,
+    y: -10 - Math.random() * 150,
+    r: 3 + Math.random() * 5,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    vx: (Math.random() - 0.5) * 5,
+    vy: 3 + Math.random() * 4,
+    rot: Math.random() * 360,
+    rotV: (Math.random() - 0.5) * 7,
+    shape: Math.random() > 0.5 ? 'rect' : 'circle',
+  }));
+  let frame = 0;
+  (function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach(p => {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot * Math.PI / 180);
+      ctx.fillStyle = p.color;
+      if (p.shape === 'rect') ctx.fillRect(-p.r, -p.r / 2, p.r * 2, p.r);
+      else { ctx.beginPath(); ctx.arc(0, 0, p.r, 0, Math.PI * 2); ctx.fill(); }
+      ctx.restore();
+      p.x += p.vx; p.y += p.vy; p.rot += p.rotV; p.vy += 0.09;
+    });
+    if (++frame < 140) requestAnimationFrame(draw);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  })();
+}
+
+/* ── TOAST ── */
+let tt;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(tt); tt = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+/* ── RESTORE ON LOAD ── */
+function restoreUI() {
+  stamped.forEach(i => {
+    const card = document.getElementById('st' + i);
+    if (!card) return;
+    card.className = 'st-card visited collapsed';
+    const btn = card.querySelector('.stamp-btn');
+    btn.className = 'stamp-btn s';
+    btn.innerHTML = '✔';
+  });
+  updateProg();
+  updateMS();
+  if (stamped.size > 0 && stamped.size < ST.length) {
+    showTab('stations');
+    setTimeout(scrollToNext, 500);
+  }
+}
+restoreUI();
+
+/* ── RESET ── */
+function resetAll() {
+  if (!confirm('スタンプをすべてリセットしますか？')) return;
+  stamped.clear(); saveStamps();
+  ST.forEach((_, i) => {
+    const card = document.getElementById('st' + i);
+    if (!card) return;
+    card.className = 'st-card';
+    const btn = card.querySelector('.stamp-btn');
+    btn.className = 'stamp-btn u';
+    btn.innerHTML = '到着<br>スタンプ';
+  });
+  filterOn = false;
+  document.getElementById('filter-btn').classList.remove('on');
+  applyFilter();
+  updateProg(); updateMS();
+  toast('🔄 リセットしました');
+  showTab('home');
+}
+</script>
+</body>
+</html>
