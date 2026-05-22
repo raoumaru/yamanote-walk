@@ -55,8 +55,9 @@
     box-shadow: 0 3px 10px rgba(178,34,34,.4); transition: opacity .2s;
   }
   #setup-confirm-btn:active { opacity: .8; }
+  .time-wrap { display: block; width: 100%; overflow: hidden; }
   #setup-time {
-    display: block; width: 100%; padding: 8px 10px;
+    display: block; width: 100%; min-width: 0; padding: 8px 10px;
     border: 1.5px solid var(--gold); border-radius: 4px;
     background: white; font-family: 'Noto Sans JP', sans-serif; font-size: 13px;
     color: var(--ink); box-sizing: border-box;
@@ -187,10 +188,10 @@
 
   .stamp-btn {
     float:right; margin: 0 0 4px 8px; position:relative;
-    width:44px; height:44px; border-radius:50%; border:3px solid;
-    background:transparent; cursor:pointer; font-size:10px; font-weight:700;
+    width:48px; height:48px; border-radius:50%; border:3px solid;
+    background:transparent; cursor:pointer; font-size:8.5px; font-weight:700;
     font-family:'Noto Sans JP',sans-serif; transition:all .25s;
-    display:flex; align-items:center; justify-content:center; text-align:center; line-height:1.2;
+    display:flex; align-items:center; justify-content:center; text-align:center; line-height:1.4;
   }
   .st-card.collapsed .stamp-btn { width:26px; height:26px; font-size:14px; border-width:2px; margin:0 0 2px 6px; }
   .stamp-btn.u { border-color: rgba(139,90,43,.3); color: rgba(139,90,43,.4); }
@@ -278,7 +279,7 @@
     <select id="setup-start-sel"></select>
 
     <div class="setup-label">出発時刻</div>
-    <input type="time" id="setup-time" value="07:00">
+    <div class="time-wrap"><input type="time" id="setup-time" value="07:00"></div>
 
     <div class="setup-label">方向を選ぶ</div>
     <div id="setup-dir-btns">
