@@ -247,22 +247,15 @@ function buildLunch() {
   const noonStIdx   = route[noonRoutePos];
   const noonArrival = fmtTime(config.depart, routeMins[noonRoutePos]);
 
-  // 12:00駅から±5駅以内のランチ候補を抽出
-  const nearby = LUNCH.filter(l => {
-    const lPos = route.indexOf(l.si);
-    return lPos !== -1 && Math.abs(lPos - noonRoutePos) <= 5;
-  });
+  // 12:00駅から円形距離±5駅以内のランチ候補を抽出
+  const circDist = (a, b) => { const d = Math.abs(a - b); return Math.min(d, ST.length - d); };
+  const nearby = LUNCH.filter(l => circDist(l.si, noonStIdx) <= 5);
   const toShow = nearby.length > 0 ? nearby : LUNCH;
 
   // ヘッダーを更新
   const header = document.getElementById('lunch-header');
-  if (nearby.length > 0) {
-    header.innerHTML = `📍 <strong>${ST[noonStIdx].n}駅</strong>付近を12:00ごろ（${noonArrival}）通過 — ルート沿いの候補`;
-    header.className = 'lunch-noon-header match';
-  } else {
-    header.innerHTML = `📍 12:00ごろ（${noonArrival}）は<strong>${ST[noonStIdx].n}駅</strong>付近。昼時に上野・日暮里エリアを通らないため全候補を表示`;
-    header.className = 'lunch-noon-header note';
-  }
+  header.innerHTML = `📍 12:00ごろ（${noonArrival}）<strong>${ST[noonStIdx].n}駅</strong>付近を通過予定 — 近くのランチ候補`;
+  header.className = 'lunch-noon-header match';
 
   toShow.forEach(l => {
     const d = document.createElement('div');
