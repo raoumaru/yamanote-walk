@@ -129,26 +129,26 @@
 
   /* ── STATION CARD ── */
   .st-card {
-    display:block; position:relative; padding: 8px 58px 8px 8px; margin-bottom: 7px;
+    display:block; overflow:hidden; padding: 8px; margin-bottom: 7px;
     border: 1px solid rgba(139,90,43,.3); border-radius: 4px; background: rgba(255,255,255,.75);
     transition: all .35s;
   }
   .st-card.visited { background: rgba(245,224,160,.7); border-color: var(--gold); }
   .st-card.collapsed {
-    padding: 5px 40px 5px 8px; margin-bottom: 4px; opacity: .55;
+    padding: 5px 8px; margin-bottom: 4px; opacity: .55;
     background: rgba(200,230,200,.45); border-color: rgba(46,125,50,.35);
   }
   .st-card.collapsed .st-detail { display: none; }
   .st-card.hidden { display: none; }
 
   .stamp-btn {
-    position:absolute; top:8px; right:8px;
-    width:46px; height:46px; border-radius:50%; border:3px solid;
+    float:right; margin: 0 0 4px 8px; position:relative;
+    width:44px; height:44px; border-radius:50%; border:3px solid;
     background:transparent; cursor:pointer; font-size:10px; font-weight:700;
     font-family:'Noto Sans JP',sans-serif; transition:all .25s;
     display:flex; align-items:center; justify-content:center; text-align:center; line-height:1.2;
   }
-  .st-card.collapsed .stamp-btn { width:26px; height:26px; font-size:14px; border-width:2px; top:5px; right:6px; }
+  .st-card.collapsed .stamp-btn { width:26px; height:26px; font-size:14px; border-width:2px; margin:0 0 2px 6px; }
   .stamp-btn.u { border-color: rgba(139,90,43,.3); color: rgba(139,90,43,.4); }
   .stamp-btn.s { border-color: var(--stamp-green); color: var(--stamp-green); background: rgba(46,125,50,.1); transform:rotate(-5deg); box-shadow:0 0 8px rgba(46,125,50,.3); font-size:18px; }
   .stamp-btn.s::after { content:''; position:absolute; inset:-2px; border:1px dashed var(--stamp-green); border-radius:50%; opacity:.5; }
