@@ -30,8 +30,12 @@ let restoring = false;
   // セットアップUIの選択肢を構築
   buildSetupOptions();
 
-  // 設定の有無に関わらずそのまま起動（デフォルト: 渋谷・外回り・07:00）
-  startApp();
+  if (savedCfg) {
+    startApp();
+  } else {
+    // 初回はデフォルト値が入った状態でモーダルを表示
+    document.getElementById('setup-modal').style.display = 'flex';
+  }
 })();
 
 // ── セットアップ画面の構築 ──
