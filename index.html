@@ -266,6 +266,53 @@
 
   #confetti-canvas { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:998; }
   footer { text-align:center; color:rgba(245,230,200,.4); font-size:10px; padding:10px 0 16px; letter-spacing:2px; }
+
+  /* ── スタンプ到着時刻 ── */
+  .stamp-time { font-size:7px; font-weight:400; display:block; margin-top:2px; letter-spacing:0; line-height:1; }
+  .st-card.collapsed .stamp-time { display:none; }
+
+  /* ── 完歩証モーダル ── */
+  #cert-modal {
+    display:none; position:fixed; inset:0; z-index:9998;
+    background:rgba(10,6,2,.92); align-items:center; justify-content:center;
+    padding:12px; overflow-y:auto;
+  }
+  #cert-wrap {
+    background:var(--parchment); border:3px double var(--gold); border-radius:8px;
+    padding:18px; width:100%; max-width:400px;
+  }
+  .cert-modal-title { font-size:15px; font-weight:900; color:var(--red); text-align:center; letter-spacing:3px; margin-bottom:12px; }
+  .cert-name-inputs { display:flex; gap:8px; margin-bottom:12px; }
+  .cert-name-inputs input {
+    flex:1; padding:8px 10px; border:1.5px solid var(--gold); border-radius:4px;
+    font-family:'Noto Sans JP',sans-serif; font-size:14px; background:white;
+    color:var(--ink); box-sizing:border-box;
+  }
+  #cert-display {
+    background:#f9f0dc;
+    background-image:repeating-linear-gradient(0deg,transparent,transparent 28px,rgba(139,90,43,.05) 28px,rgba(139,90,43,.05) 29px);
+    border:3px double var(--gold); border-radius:4px; padding:18px 14px;
+    text-align:center; position:relative; margin-bottom:10px;
+  }
+  .cert-crnr { position:absolute; font-size:13px; color:var(--gold); font-weight:900; }
+  .cert-crnr.tl{top:6px;left:8px} .cert-crnr.tr{top:6px;right:8px}
+  .cert-crnr.bl{bottom:6px;left:8px} .cert-crnr.br{bottom:6px;right:8px}
+  .cert-h1 { font-size:26px; font-weight:900; color:var(--red); letter-spacing:8px; text-shadow:1px 1px 0 rgba(200,146,10,.4); margin:8px 0 4px; }
+  .cert-h2 { font-size:10px; color:var(--brown); letter-spacing:4px; margin-bottom:8px; }
+  .cert-rule { border:none; border-top:1px solid var(--gold); margin:8px 20px; }
+  .cert-name { font-size:20px; font-weight:900; color:var(--ink); letter-spacing:3px; margin:10px 0; }
+  .cert-body { font-size:12px; color:var(--ink); line-height:2; margin:8px 0; }
+  .cert-stats { text-align:left; margin:8px 10px; }
+  .cert-srow { display:flex; padding:4px 0; border-bottom:1px dotted rgba(139,90,43,.25); font-size:12px; }
+  .cert-slbl { width:72px; color:var(--brown); font-weight:700; flex-shrink:0; }
+  .cert-sval { font-weight:700; color:var(--ink); }
+  .cert-date { font-size:11px; color:var(--brown); letter-spacing:2px; margin-top:10px; }
+  .cert-medal { font-size:14px; font-weight:900; color:var(--gold); letter-spacing:3px; margin-top:8px; }
+  .cert-btns { display:flex; gap:8px; }
+  .cert-btn { flex:1; padding:11px; border:none; border-radius:6px; font-family:'Noto Sans JP',sans-serif; font-size:12px; font-weight:900; cursor:pointer; letter-spacing:1px; }
+  .cert-btn-save { background:var(--green); color:white; }
+  .cert-btn-close { background:rgba(139,90,43,.15); color:var(--brown); border:1px solid var(--gold); }
+  #cert-save-hint { font-size:10px; color:var(--brown); text-align:center; margin-top:4px; display:none; padding:4px 0; }
 </style>
 </head>
 <body>
@@ -332,6 +379,7 @@
     </div>
 
     <footer>― 山手線一周徒歩の旅しおり ― 令和の大冒険 ―<br>
+      <button id="cert-open-btn" onclick="openCertModal()" style="display:none;margin-top:10px;background:linear-gradient(135deg,#c8920a,#e8b400);border:none;color:#2a1a00;font-size:12px;font-weight:700;padding:8px 20px;border-radius:4px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;letter-spacing:1px;">🏆 完歩証を見る</button><br>
       <button onclick="resetAll()" style="margin-top:8px;background:transparent;border:1px solid rgba(245,230,200,0.3);color:rgba(245,230,200,0.4);font-size:10px;padding:4px 14px;border-radius:3px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">スタンプをリセット</button>
       <button onclick="openSetup()" style="margin-top:8px;margin-left:6px;background:transparent;border:1px solid rgba(200,146,10,0.4);color:rgba(200,146,10,0.6);font-size:10px;padding:4px 14px;border-radius:3px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">⚙ 設定変更</button>
     </footer>
@@ -401,6 +449,37 @@
 <div id="ms-toast-container"></div>
 <div id="toast"></div>
 
+<!-- ══ 完歩証モーダル ══ -->
+<div id="cert-modal">
+  <div id="cert-wrap">
+    <div class="cert-modal-title">🏆 完歩証</div>
+    <div class="cert-name-inputs">
+      <input id="cert-sei" type="text" placeholder="姓（山田）" maxlength="10" oninput="updateCertDisp()">
+      <input id="cert-mei" type="text" placeholder="名（太郎）" maxlength="10" oninput="updateCertDisp()">
+    </div>
+    <div id="cert-display">
+      <div class="cert-crnr tl">◆</div><div class="cert-crnr tr">◆</div>
+      <div class="cert-crnr bl">◆</div><div class="cert-crnr br">◆</div>
+      <div class="cert-h1">完 歩 証</div>
+      <div class="cert-h2">─ 山手線一周徒歩達成 ─</div>
+      <hr class="cert-rule">
+      <div class="cert-name" id="cert-name-disp">○○ ○○ 殿</div>
+      <div class="cert-body">山手線全30駅・全長34.5kmを<br>徒歩にて完全踏破したことを<br>ここに証します</div>
+      <hr class="cert-rule">
+      <div class="cert-stats" id="cert-stats"></div>
+      <hr class="cert-rule">
+      <div class="cert-date" id="cert-date-disp"></div>
+      <div class="cert-medal">★ 完全踏破 ★</div>
+    </div>
+    <div id="cert-save-hint">長押しして「画像を保存」を選んでください</div>
+    <div class="cert-btns">
+      <button class="cert-btn cert-btn-save" onclick="saveCertImage()">📥 画像を保存</button>
+      <button class="cert-btn cert-btn-close" onclick="closeCertModal()">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="js/data.js"></script>
 <script src="js/app.js"></script>
 </body>
