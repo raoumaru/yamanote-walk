@@ -286,12 +286,17 @@
     padding:18px; width:100%; max-width:400px;
   }
   .cert-modal-title { font-size:15px; font-weight:900; color:var(--red); text-align:center; letter-spacing:3px; margin-bottom:12px; }
-  .cert-name-inputs { display:flex; gap:8px; margin-bottom:12px; }
+  .cert-name-inputs { margin-bottom:12px; }
   .cert-name-inputs input {
-    flex:1; padding:8px 10px; border:1.5px solid var(--gold); border-radius:4px;
+    width:100%; padding:8px 10px; border:1.5px solid var(--gold); border-radius:4px;
     font-family:'Noto Sans JP',sans-serif; font-size:14px; background:white;
     color:var(--ink); box-sizing:border-box;
   }
+  .cert-laps { display:grid; grid-template-columns:repeat(2,1fr); gap:1px 8px; margin:6px 8px; text-align:left; }
+  .cert-lap { display:flex; align-items:center; gap:3px; padding:2px 0; border-bottom:1px dotted rgba(139,90,43,.15); font-size:8px; }
+  .cert-lap-n { color:var(--map-blue); font-weight:700; min-width:22px; }
+  .cert-lap-nm { flex:1; color:var(--ink); overflow:hidden; white-space:nowrap; }
+  .cert-lap-t { color:var(--stamp-green); font-weight:700; white-space:nowrap; }
   #cert-display {
     background:#f9f0dc;
     background-image:repeating-linear-gradient(0deg,transparent,transparent 28px,rgba(139,90,43,.05) 28px,rgba(139,90,43,.05) 29px);
@@ -458,8 +463,7 @@
   <div id="cert-wrap">
     <div class="cert-modal-title">🏆 完歩証</div>
     <div class="cert-name-inputs">
-      <input id="cert-sei" type="text" placeholder="姓（山田）" maxlength="10" oninput="updateCertDisp()">
-      <input id="cert-mei" type="text" placeholder="名（太郎）" maxlength="10" oninput="updateCertDisp()">
+      <input id="cert-name" type="text" placeholder="お名前（例：山田太郎）" maxlength="20" oninput="updateCertDisp()">
     </div>
     <div id="cert-display">
       <div class="cert-crnr tl">◆</div><div class="cert-crnr tr">◆</div>
@@ -467,10 +471,12 @@
       <div class="cert-h1">完 歩 証</div>
       <div class="cert-h2">─ 山手線一周徒歩達成 ─</div>
       <hr class="cert-rule">
-      <div class="cert-name" id="cert-name-disp">○○ ○○ 殿</div>
+      <div class="cert-name" id="cert-name-disp">○○○○ 殿</div>
       <div class="cert-body">山手線全30駅・全長34.5kmを<br>徒歩にて完全踏破したことを<br>ここに証します</div>
       <hr class="cert-rule">
       <div class="cert-stats" id="cert-stats"></div>
+      <hr class="cert-rule">
+      <div class="cert-laps" id="cert-laps"></div>
       <hr class="cert-rule">
       <div class="cert-date" id="cert-date-disp"></div>
       <div class="cert-medal">★ 完全踏破 ★</div>

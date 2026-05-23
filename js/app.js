@@ -260,7 +260,8 @@ function buildStations() {
   gc.id = 'st-goal';
   gc.innerHTML = `
     <div class="stamp-wrap">
-      <div class="goal-flag">🏁</div>
+      <span class="stamp-time" id="at__goal__"></span>
+      <button class="stamp-btn u" id="goal-stamp-btn" onclick="tapGoal()">到着<br>スタンプ</button>
     </div>
     <div class="st-info">
       <div class="st-head">
@@ -420,18 +421,21 @@ function tap(stIdx) {
   updateProg(km);
   updateMS(km);
 
-  // 全駅制覇チェック
+  // 全30駅制覇 → ゴールカードを解放
   if (on && stamped.size === ST.length) {
     const goalCard = document.getElementById('st-goal');
     if (goalCard) goalCard.classList.add('visited');
-    const certBtn = document.getElementById('cert-open-btn');
-    if (certBtn) certBtn.style.display = 'inline-block';
     setTimeout(() => {
-      launchConfetti();
-      toast('🎉 山手線一周完全制覇！おめでとう！');
-      setTimeout(openCertModal, 2000);
+      toast('🏁 あと1駅！' + ST[route[0]].n + '駅でゴールスタンプを押そう！');
+      setTimeout(() => {
+        if (goalCard) {
+          goalCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          goalCard.style.boxShadow = '0 0 18px rgba(200,146,10,.9)';
+          setTimeout(() => { goalCard.style.boxShadow = ''; }, 2100);
+        }
+      }, 600);
     }, 400);
-  } else if (!on) {
+  } else if (!on && stamped.size < ST.length) {
     const goalCard = document.getElementById('st-goal');
     if (goalCard) goalCard.classList.remove('visited');
   }
@@ -450,6 +454,38 @@ function scrollToNext() {
         return;
       }
     }
+  }
+}
+
+// ── ゴールスタンプ ──
+function tapGoal() {
+  const wasOn = !!arrivals['__goal__'];
+  if (!wasOn) {
+    arrivals['__goal__'] = nowHHMM();
+  } else {
+    delete arrivals['__goal__'];
+  }
+  saveTimes();
+
+  const on = !!arrivals['__goal__'];
+  const btn = document.getElementById('goal-stamp-btn');
+  const timeEl = document.getElementById('at__goal__');
+  if (btn) {
+    btn.className = 'stamp-btn ' + (on ? 's' : 'u');
+    btn.innerHTML = on ? '✔' : '到着<br>スタンプ';
+  }
+  if (timeEl) timeEl.textContent = on ? arrivals['__goal__'] : '';
+
+  const certBtn = document.getElementById('cert-open-btn');
+  if (on) {
+    if (certBtn) certBtn.style.display = 'inline-block';
+    setTimeout(() => {
+      launchConfetti();
+      toast('🎉 山手線一周完全制覇！おめでとう！');
+      setTimeout(openCertModal, 2000);
+    }, 400);
+  } else {
+    if (certBtn) certBtn.style.display = 'none';
   }
 }
 
@@ -585,19 +621,16 @@ function closeCertModal() {
   document.getElementById('cert-modal').style.display = 'none';
 }
 function updateCertDisp() {
-  const sei = (document.getElementById('cert-sei').value || '').trim();
-  const mei = (document.getElementById('cert-mei').value || '').trim();
-  const name = (sei + (sei && mei ? ' ' : '') + mei) || '○○ ○○';
+  const name = (document.getElementById('cert-name').value || '').trim() || '○○○○';
   document.getElementById('cert-name-disp').textContent = name + ' 殿';
 
-  const startStIdx  = route[0];
-  const goalStIdx   = route[route.length - 1];
-  const startTime   = arrivals[startStIdx] || '---';
-  const finishTime  = arrivals[goalStIdx]  || '---';
+  const startStIdx = route[0];
+  const startTime  = arrivals[startStIdx] || '---';
+  const finishTime = arrivals['__goal__'] || '---';
   let dur = '---';
-  if (arrivals[startStIdx] && arrivals[goalStIdx]) {
+  if (arrivals[startStIdx] && arrivals['__goal__']) {
     const [sh, sm] = arrivals[startStIdx].split(':').map(Number);
-    const [dh, dm] = arrivals[goalStIdx].split(':').map(Number);
+    const [dh, dm] = arrivals['__goal__'].split(':').map(Number);
     let diff = (dh * 60 + dm) - (sh * 60 + sm);
     if (diff < 0) diff += 1440;
     dur = Math.floor(diff / 60) + '時間' + String(diff % 60).padStart(2, '0') + '分';
@@ -613,6 +646,13 @@ function updateCertDisp() {
   document.getElementById('cert-stats').innerHTML = rows.map(([l, v]) =>
     `<div class="cert-srow"><span class="cert-slbl">${l}</span><span class="cert-sval">${v}</span></div>`
   ).join('');
+
+  // ラップタイム
+  const lapsHtml = route.map((stIdx, pos) => {
+    const t = arrivals[stIdx] || '--:--';
+    return `<div class="cert-lap"><span class="cert-lap-n">No.${pos + 1}</span><span class="cert-lap-nm">${ST[stIdx].n}</span><span class="cert-lap-t">${t}</span></div>`;
+  }).join('') + `<div class="cert-lap"><span class="cert-lap-n">No.31</span><span class="cert-lap-nm">${ST[startStIdx].n}(G)</span><span class="cert-lap-t">${arrivals['__goal__'] || '--:--'}</span></div>`;
+  document.getElementById('cert-laps').innerHTML = lapsHtml;
 
   const d = new Date();
   document.getElementById('cert-date-disp').textContent =
@@ -670,8 +710,16 @@ function restoreUI() {
   if (stamped.size === ST.length) {
     const goalCard = document.getElementById('st-goal');
     if (goalCard) goalCard.classList.add('visited');
+    // ゴールスタンプ済みなら復元
+    const goalBtn = document.getElementById('goal-stamp-btn');
+    const goalTimeEl = document.getElementById('at__goal__');
+    if (arrivals['__goal__'] && goalBtn) {
+      goalBtn.className = 'stamp-btn s';
+      goalBtn.innerHTML = '✔';
+    }
+    if (goalTimeEl) goalTimeEl.textContent = arrivals['__goal__'] || '';
     const certBtn = document.getElementById('cert-open-btn');
-    if (certBtn) certBtn.style.display = 'inline-block';
+    if (arrivals['__goal__'] && certBtn) certBtn.style.display = 'inline-block';
   } else if (stamped.size > 0) {
     showTab('stations');
     setTimeout(scrollToNext, 500);
@@ -699,6 +747,10 @@ function resetAll() {
   });
   const goalCard = document.getElementById('st-goal');
   if (goalCard) goalCard.classList.remove('visited');
+  const goalBtn = document.getElementById('goal-stamp-btn');
+  if (goalBtn) { goalBtn.className = 'stamp-btn u'; goalBtn.innerHTML = '到着<br>スタンプ'; }
+  const goalTimeEl = document.getElementById('at__goal__');
+  if (goalTimeEl) goalTimeEl.textContent = '';
   filterOn = false;
   document.getElementById('filter-btn').classList.remove('on');
   applyFilter();
