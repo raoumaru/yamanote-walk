@@ -144,6 +144,9 @@ function buildRoute() {
     routeKms.push(routeKms[i] + adjDist(route[i], route[i + 1]));
     routeMins.push(routeMins[i] + adjTime(route[i], route[i + 1]));
   }
+  // 最終区間（最後の駅→出発駅）を追加して一周を完成させる
+  routeKms.push(routeKms[n - 1] + adjDist(route[n - 1], route[0]));
+  routeMins.push(routeMins[n - 1] + adjTime(route[n - 1], route[0]));
 }
 
 // ── 隣接駅間距離 ──
@@ -177,6 +180,10 @@ function calcWalkedKm() {
       total += adjDist(route[i], route[i + 1]);
     }
   }
+  // 全駅制覇で最終区間（最後の駅→出発駅）を加算
+  if (stamped.size === route.length) {
+    total += adjDist(route[route.length - 1], route[0]);
+  }
   return Math.round(total * 10) / 10;
 }
 
@@ -208,11 +215,9 @@ function buildStations() {
     const s = ST[stIdx];
     const km = routeKms[routePos];
     const isStart = routePos === 0;
-    const isLast  = routePos === route.length - 1;
 
     const allBadges = [
-      ...(isStart ? ['start'] : []),
-      ...(isLast  ? ['goal']  : []),
+      ...(isStart ? ['start', 'goal'] : []),
       ...(s.b || []),
     ];
     const badgeHtml = allBadges.map(b => {
@@ -553,21 +558,23 @@ function updateCertDisp() {
   const name = (sei + (sei && mei ? ' ' : '') + mei) || '○○ ○○';
   document.getElementById('cert-name-disp').textContent = name + ' 殿';
 
-  const goalStIdx  = route[route.length - 1];
-  const finishTime = arrivals[goalStIdx] || '---';
+  const startStIdx  = route[0];
+  const goalStIdx   = route[route.length - 1];
+  const startTime   = arrivals[startStIdx] || '---';
+  const finishTime  = arrivals[goalStIdx]  || '---';
   let dur = '---';
-  if (arrivals[goalStIdx] && config.depart) {
+  if (arrivals[startStIdx] && arrivals[goalStIdx]) {
+    const [sh, sm] = arrivals[startStIdx].split(':').map(Number);
     const [dh, dm] = arrivals[goalStIdx].split(':').map(Number);
-    const [sh, sm] = (config.depart || '07:00').split(':').map(Number);
     let diff = (dh * 60 + dm) - (sh * 60 + sm);
     if (diff < 0) diff += 1440;
     dur = Math.floor(diff / 60) + '時間' + String(diff % 60).padStart(2, '0') + '分';
   }
 
   const rows = [
-    ['出発駅',  ST[route[0]].n + '駅'],
+    ['出発駅',  ST[startStIdx].n + '駅'],
     ['方向',    config.dir === 'outer' ? '外回り' : '内回り'],
-    ['出発時刻', config.depart || '---'],
+    ['出発時刻', startTime],
     ['完歩時刻', finishTime],
     ['所要時間', dur],
   ];
