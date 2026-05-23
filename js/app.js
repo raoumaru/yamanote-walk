@@ -330,14 +330,31 @@ function buildMapTab() {
   const container = document.getElementById('map-content');
   container.innerHTML = '';
 
-  // ルート順で最初の未訪問駅を探す
+  // route[0]は出発地点なので i=1 から検索（最初の目的地は route[1]）
   let nextRoutePos = -1;
-  for (let i = 0; i < route.length; i++) {
+  for (let i = 1; i < route.length; i++) {
     if (!stamped.has(route[i])) { nextRoutePos = i; break; }
   }
 
+  // 全30駅訪問済みの場合
   if (nextRoutePos === -1) {
-    container.innerHTML = '<div class="map-complete">🎉 全駅制覇！<br>山手線一周達成！</div>';
+    if (!arrivals['__goal__']) {
+      // ゴール未打刻 → 出発駅をゴールとして表示
+      const goalStIdx = route[0];
+      const goalKm   = routeKms[route.length];
+      const goalTime = fmtTime(config.depart, routeMins[route.length]);
+      const dest = document.createElement('div');
+      dest.className = 'map-dest-card';
+      dest.innerHTML = `
+        <div class="map-dest-label">— 最終目的地 —</div>
+        <div class="map-dest-name">${ST[goalStIdx].n}駅（ゴール！）</div>
+        <div class="map-dest-meta">No.31 ／ ${goalKm.toFixed(1)}km地点 ／ 目安 ${goalTime}</div>
+        <a href="${mapsUrl(ST[goalStIdx].n)}" target="_blank" rel="noopener" class="map-main-btn">📍 Googleマップで徒歩ルートを見る</a>
+      `;
+      container.appendChild(dest);
+    } else {
+      container.innerHTML = '<div class="map-complete">🎉 全駅制覇！<br>山手線一周達成！</div>';
+    }
     return;
   }
 
@@ -355,12 +372,15 @@ function buildMapTab() {
   `;
   container.appendChild(dest);
 
-  const remaining = route.filter((si, pos) => pos > nextRoutePos && !stamped.has(si));
-  if (remaining.length === 0) return;
+  // 残りの駅リスト（ゴール渋谷を含む）
+  const remainingUnvisited = route.filter((si, pos) => pos > nextRoutePos && !stamped.has(si));
+  const goalPending = !arrivals['__goal__'];
+  const totalRemaining = remainingUnvisited.length + (goalPending ? 1 : 0);
+  if (totalRemaining === 0) return;
 
   const title = document.createElement('div');
   title.className = 'map-section-title';
-  title.textContent = '残りの駅 ' + remaining.length + '駅';
+  title.textContent = '残りの駅 ' + totalRemaining + '駅';
   container.appendChild(title);
 
   route.forEach((stIdx, pos) => {
@@ -376,6 +396,20 @@ function buildMapTab() {
     `;
     container.appendChild(row);
   });
+
+  // ゴール（出発駅）を残りリストの末尾に追加
+  if (goalPending) {
+    const goalStIdx = route[0];
+    const row = document.createElement('div');
+    row.className = 'map-station-row';
+    row.innerHTML = `
+      <span class="map-st-num">No.31</span>
+      <span class="map-st-name">${ST[goalStIdx].n}駅（ゴール）</span>
+      <span class="map-st-km">${routeKms[route.length].toFixed(1)}km</span>
+      <a href="${mapsUrl(ST[goalStIdx].n)}" target="_blank" rel="noopener" class="map-mini-btn">📍</a>
+    `;
+    container.appendChild(row);
+  }
 }
 
 function mapsUrl(name) {
