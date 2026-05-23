@@ -217,7 +217,7 @@ function buildStations() {
     const isStart = routePos === 0;
 
     const allBadges = [
-      ...(isStart ? ['start', 'goal'] : []),
+      ...(isStart ? ['start'] : []),
       ...(s.b || []),
     ];
     const badgeHtml = allBadges.map(b => {
@@ -232,7 +232,10 @@ function buildStations() {
     d.className = 'st-card';
     d.id = 'st' + stIdx;
     d.innerHTML = `
-      <button class="stamp-btn u" onclick="tap(${stIdx})">到着<br>スタンプ</button>
+      <div class="stamp-wrap">
+        <span class="stamp-time" id="at${stIdx}"></span>
+        <button class="stamp-btn u" onclick="tap(${stIdx})">到着<br>スタンプ</button>
+      </div>
       <div class="st-info">
         <div class="st-head">
           <span class="st-num">No.${routePos + 1}</span>
@@ -246,6 +249,30 @@ function buildStations() {
       </div>`;
     container.appendChild(d);
   });
+
+  // No.31 ゴールカード（出発駅へのループ帰還）
+  const goalStIdx = route[0];
+  const goalS     = ST[goalStIdx];
+  const goalKm    = routeKms[route.length];
+  const goalTime  = fmtTime(config.depart, routeMins[route.length]);
+  const gc = document.createElement('div');
+  gc.className = 'st-card st-goal-card';
+  gc.id = 'st-goal';
+  gc.innerHTML = `
+    <div class="stamp-wrap">
+      <div class="goal-flag">🏁</div>
+    </div>
+    <div class="st-info">
+      <div class="st-head">
+        <span class="st-num">No.31</span>
+        <span class="st-name">${goalS.n}駅<span class="badge goal">ゴール！</span></span>
+      </div>
+      <div class="st-detail">
+        <div><span class="st-time">⏱ ${goalTime}</span><span class="st-km">${goalKm.toFixed(1)}km</span></div>
+        <div class="st-memo">▶ 山手線一周完全踏破！おめでとう！</div>
+      </div>
+    </div>`;
+  container.appendChild(gc);
 }
 
 // ── 昼食カード構築 ──
@@ -372,9 +399,9 @@ function tap(stIdx) {
   const on   = stamped.has(stIdx);
 
   btn.className = 'stamp-btn ' + (on ? 's' : 'u');
-  btn.innerHTML = on
-    ? '✔' + (arrivals[stIdx] ? '<br><span class="stamp-time">' + arrivals[stIdx] + '</span>' : '')
-    : '到着<br>スタンプ';
+  btn.innerHTML = on ? '✔' : '到着<br>スタンプ';
+  const timeEl = document.getElementById('at' + stIdx);
+  if (timeEl) timeEl.textContent = (on && arrivals[stIdx]) ? arrivals[stIdx] : '';
 
   if (on) {
     card.classList.add('visited');
@@ -395,6 +422,8 @@ function tap(stIdx) {
 
   // 全駅制覇チェック
   if (on && stamped.size === ST.length) {
+    const goalCard = document.getElementById('st-goal');
+    if (goalCard) goalCard.classList.add('visited');
     const certBtn = document.getElementById('cert-open-btn');
     if (certBtn) certBtn.style.display = 'inline-block';
     setTimeout(() => {
@@ -402,6 +431,9 @@ function tap(stIdx) {
       toast('🎉 山手線一周完全制覇！おめでとう！');
       setTimeout(openCertModal, 2000);
     }, 400);
+  } else if (!on) {
+    const goalCard = document.getElementById('st-goal');
+    if (goalCard) goalCard.classList.remove('visited');
   }
 }
 
@@ -626,14 +658,18 @@ function restoreUI() {
     card.className = 'st-card visited collapsed';
     const btn = card.querySelector('.stamp-btn');
     btn.className = 'stamp-btn s';
+    btn.innerHTML = '✔';
+    const timeEl = document.getElementById('at' + stIdx);
     const t = arrivals[stIdx];
-    btn.innerHTML = '✔' + (t ? '<br><span class="stamp-time">' + t + '</span>' : '');
+    if (timeEl) timeEl.textContent = t || '';
   });
   const km = calcWalkedKm();
   updateProg(km);
   updateMS(km);
   restoring = false;
   if (stamped.size === ST.length) {
+    const goalCard = document.getElementById('st-goal');
+    if (goalCard) goalCard.classList.add('visited');
     const certBtn = document.getElementById('cert-open-btn');
     if (certBtn) certBtn.style.display = 'inline-block';
   } else if (stamped.size > 0) {
@@ -658,7 +694,11 @@ function resetAll() {
     const btn = card.querySelector('.stamp-btn');
     btn.className = 'stamp-btn u';
     btn.innerHTML = '到着<br>スタンプ';
+    const timeEl = document.getElementById('at' + stIdx);
+    if (timeEl) timeEl.textContent = '';
   });
+  const goalCard = document.getElementById('st-goal');
+  if (goalCard) goalCard.classList.remove('visited');
   filterOn = false;
   document.getElementById('filter-btn').classList.remove('on');
   applyFilter();

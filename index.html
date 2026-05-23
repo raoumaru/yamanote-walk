@@ -186,14 +186,18 @@
   .st-card.collapsed .st-detail { display: none; }
   .st-card.hidden { display: none; }
 
+  .stamp-wrap { float:right; display:flex; align-items:center; gap:6px; margin:0 0 4px 8px; }
+  .stamp-wrap .stamp-time { font-size:9px; font-weight:700; color:var(--stamp-green); line-height:1.3; white-space:nowrap; text-align:right; }
   .stamp-btn {
-    float:right; margin: 0 0 4px 8px; position:relative;
+    flex-shrink:0; position:relative;
     width:48px; height:48px; border-radius:50%; border:3px solid;
     background:transparent; cursor:pointer; font-size:8.5px; font-weight:700;
     font-family:'Noto Sans JP',sans-serif; transition:all .25s;
     display:flex; align-items:center; justify-content:center; text-align:center; line-height:1.4;
   }
-  .st-card.collapsed .stamp-btn { width:26px; height:26px; font-size:14px; border-width:2px; margin:0 0 2px 6px; }
+  .st-card.collapsed .stamp-wrap { margin:0 0 2px 4px; gap:4px; }
+  .st-card.collapsed .stamp-btn { width:26px; height:26px; font-size:14px; border-width:2px; }
+  .st-card.collapsed .stamp-wrap .stamp-time { font-size:8px; }
   .stamp-btn.u { border-color: rgba(139,90,43,.3); color: rgba(139,90,43,.4); }
   .stamp-btn.s { border-color: var(--stamp-green); color: var(--stamp-green); background: rgba(46,125,50,.1); transform:rotate(-5deg); box-shadow:0 0 8px rgba(46,125,50,.3); font-size:18px; }
   .stamp-btn.s::after { content:''; position:absolute; inset:-2px; border:1px dashed var(--stamp-green); border-radius:50%; opacity:.5; }
@@ -201,6 +205,9 @@
   .stamp-btn.s:hover { transform: scale(1.08) rotate(-5deg); }
   @keyframes stampIn { 0%{transform:scale(2) rotate(-15deg);opacity:0} 60%{transform:scale(.9) rotate(-3deg)} 100%{transform:scale(1) rotate(-5deg);opacity:1} }
   .stamp-btn.s { animation: stampIn .35s ease forwards; }
+  .goal-flag { flex-shrink:0; width:48px; height:48px; border-radius:50%; border:3px solid var(--gold); display:flex; align-items:center; justify-content:center; font-size:22px; background:rgba(200,146,10,.08); }
+  .st-goal-card { opacity:.4; pointer-events:none; }
+  .st-goal-card.visited { opacity:1; background:rgba(245,224,160,.85) !important; border-color:var(--gold2) !important; pointer-events:auto; }
 
   .st-info { }
   .st-head { display:flex; align-items:baseline; gap:6px; flex-wrap:wrap; margin-bottom:2px; }
@@ -267,10 +274,6 @@
   #confetti-canvas { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:998; }
   footer { text-align:center; color:rgba(245,230,200,.4); font-size:10px; padding:10px 0 16px; letter-spacing:2px; }
 
-  /* ── スタンプ到着時刻 ── */
-  .stamp-time { font-size:7px; font-weight:400; display:block; margin-top:2px; letter-spacing:0; line-height:1; }
-  .st-card.collapsed .stamp-btn { height:auto; min-height:26px; padding:2px 0; }
-  .st-card.collapsed .stamp-time { display:block; font-size:6px; }
 
   /* ── 完歩証モーダル ── */
   #cert-modal {
