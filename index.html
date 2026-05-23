@@ -286,34 +286,41 @@
     padding:18px; width:100%; max-width:400px;
   }
   .cert-modal-title { font-size:15px; font-weight:900; color:var(--red); text-align:center; letter-spacing:3px; margin-bottom:12px; }
-  .cert-name-inputs { margin-bottom:12px; }
-  .cert-name-inputs input {
-    width:100%; padding:8px 10px; border:1.5px solid var(--gold); border-radius:4px;
-    font-family:'Noto Sans JP',sans-serif; font-size:14px; background:white;
-    color:var(--ink); box-sizing:border-box;
-  }
-  .cert-laps { display:grid; grid-template-columns:repeat(2,1fr); gap:1px 8px; margin:6px 8px; text-align:left; }
-  .cert-lap { display:flex; align-items:center; gap:3px; padding:2px 0; border-bottom:1px dotted rgba(139,90,43,.15); font-size:8px; }
-  .cert-lap-n { color:var(--map-blue); font-weight:700; min-width:22px; }
-  .cert-lap-nm { flex:1; color:var(--ink); overflow:hidden; white-space:nowrap; }
+  .cert-name-btn { width:100%; margin-bottom:10px; padding:9px; border:1.5px solid var(--gold); border-radius:4px; background:rgba(200,146,10,.08); font-family:'Noto Sans JP',sans-serif; font-size:13px; font-weight:700; color:var(--brown); cursor:pointer; letter-spacing:1px; }
+  #cert-display { padding:12px 12px; }
+  .cert-h1 { font-size:22px; font-weight:900; color:var(--red); letter-spacing:6px; text-shadow:1px 1px 0 rgba(200,146,10,.4); margin:4px 0 2px; }
+  .cert-h2 { font-size:9px; color:var(--brown); letter-spacing:3px; margin-bottom:6px; }
+  .cert-rule { margin:5px 16px; }
+  .cert-name { font-size:17px; font-weight:900; color:var(--ink); letter-spacing:3px; margin:6px 0; }
+  .cert-body { font-size:11px; color:var(--ink); line-height:1.8; margin:5px 0; }
+  .cert-srow { padding:2px 0; font-size:11px; }
+  .cert-laps { margin:4px 6px; text-align:left; }
+  .cert-lap { display:flex; align-items:center; gap:4px; padding:2px 0; border-bottom:1px dotted rgba(139,90,43,.2); font-size:9px; }
+  .cert-lap-n { color:var(--map-blue); font-weight:700; min-width:30px; }
+  .cert-lap-nm { flex:1; color:var(--ink); }
   .cert-lap-t { color:var(--stamp-green); font-weight:700; white-space:nowrap; }
+  .cert-lap-goal { border-bottom:none; margin-top:2px; padding-top:4px; border-top:1px solid rgba(139,90,43,.3); }
+  .cert-lap-goal .cert-lap-nm { font-weight:700; color:var(--red); }
+  .cert-date { font-size:10px; margin-top:6px; }
+  .cert-medal { font-size:12px; margin-top:5px; }
+  /* 画像保存オーバーレイ */
+  #cert-img-overlay { display:none; position:fixed; inset:0; z-index:10000; background:rgba(0,0,0,.92); align-items:center; justify-content:center; padding:16px; }
+  #cert-img-box { text-align:center; width:100%; max-width:400px; }
+  #cert-img-hint { color:#f5e6c8; font-size:13px; font-weight:700; margin-bottom:10px; letter-spacing:1px; }
+  #cert-img-el { width:100%; border-radius:6px; border:2px solid #c8920a; display:block; }
+  #cert-img-close { margin-top:14px; padding:10px 32px; border:1px solid rgba(245,230,200,.5); background:transparent; color:rgba(245,230,200,.8); font-family:'Noto Sans JP',sans-serif; font-size:13px; border-radius:4px; cursor:pointer; }
   #cert-display {
     background:#f9f0dc;
-    background-image:repeating-linear-gradient(0deg,transparent,transparent 28px,rgba(139,90,43,.05) 28px,rgba(139,90,43,.05) 29px);
-    border:3px double var(--gold); border-radius:4px; padding:18px 14px;
+    background-image:repeating-linear-gradient(0deg,transparent,transparent 24px,rgba(139,90,43,.05) 24px,rgba(139,90,43,.05) 25px);
+    border:3px double var(--gold); border-radius:4px;
     text-align:center; position:relative; margin-bottom:10px;
   }
-  .cert-crnr { position:absolute; font-size:13px; color:var(--gold); font-weight:900; }
-  .cert-crnr.tl{top:6px;left:8px} .cert-crnr.tr{top:6px;right:8px}
-  .cert-crnr.bl{bottom:6px;left:8px} .cert-crnr.br{bottom:6px;right:8px}
-  .cert-h1 { font-size:26px; font-weight:900; color:var(--red); letter-spacing:8px; text-shadow:1px 1px 0 rgba(200,146,10,.4); margin:8px 0 4px; }
-  .cert-h2 { font-size:10px; color:var(--brown); letter-spacing:4px; margin-bottom:8px; }
-  .cert-rule { border:none; border-top:1px solid var(--gold); margin:8px 20px; }
-  .cert-name { font-size:20px; font-weight:900; color:var(--ink); letter-spacing:3px; margin:10px 0; }
-  .cert-body { font-size:12px; color:var(--ink); line-height:2; margin:8px 0; }
-  .cert-stats { text-align:left; margin:8px 10px; }
-  .cert-srow { display:flex; padding:4px 0; border-bottom:1px dotted rgba(139,90,43,.25); font-size:12px; }
-  .cert-slbl { width:72px; color:var(--brown); font-weight:700; flex-shrink:0; }
+  .cert-crnr { position:absolute; font-size:11px; color:var(--gold); font-weight:900; }
+  .cert-crnr.tl{top:4px;left:6px} .cert-crnr.tr{top:4px;right:6px}
+  .cert-crnr.bl{bottom:4px;left:6px} .cert-crnr.br{bottom:4px;right:6px}
+  .cert-stats { text-align:left; margin:4px 8px; }
+  .cert-srow { display:flex; border-bottom:1px dotted rgba(139,90,43,.25); }
+  .cert-slbl { width:64px; color:var(--brown); font-weight:700; flex-shrink:0; }
   .cert-sval { font-weight:700; color:var(--ink); }
   .cert-date { font-size:11px; color:var(--brown); letter-spacing:2px; margin-top:10px; }
   .cert-medal { font-size:14px; font-weight:900; color:var(--gold); letter-spacing:3px; margin-top:8px; }
@@ -462,9 +469,7 @@
 <div id="cert-modal">
   <div id="cert-wrap">
     <div class="cert-modal-title">🏆 完歩証</div>
-    <div class="cert-name-inputs">
-      <input id="cert-name" type="text" placeholder="お名前（例：山田太郎）" maxlength="20" oninput="updateCertDisp()">
-    </div>
+    <button class="cert-name-btn" onclick="changeCertName()">✏️ 名前を入力・変更する</button>
     <div id="cert-display">
       <div class="cert-crnr tl">◆</div><div class="cert-crnr tr">◆</div>
       <div class="cert-crnr bl">◆</div><div class="cert-crnr br">◆</div>
@@ -481,7 +486,6 @@
       <div class="cert-date" id="cert-date-disp"></div>
       <div class="cert-medal">★ 完全踏破 ★</div>
     </div>
-    <div id="cert-save-hint">長押しして「画像を保存」を選んでください</div>
     <div class="cert-btns">
       <button class="cert-btn cert-btn-save" onclick="saveCertImage()">📥 画像を保存</button>
       <button class="cert-btn cert-btn-close" onclick="closeCertModal()">閉じる</button>

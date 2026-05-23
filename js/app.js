@@ -12,6 +12,7 @@ let routeKms  = [];   // route[i] に到達するまでの累積km
 let routeMins = [];   // route[i] に到達するまでの累積分数（出発からの相対）
 const stamped = new Set();
 let arrivals  = {};   // { stIdx: "HH:MM" } — 実際の到着時刻
+let certName  = '';   // 完歩証に記載する名前
 let filterOn  = false;
 let restoring = false;
 
@@ -614,15 +615,20 @@ function nowHHMM() {
 
 // ── 完歩証 ──
 function openCertModal() {
+  const input = prompt('お名前を入力してください（完歩証に記載されます）', certName);
+  if (input !== null) certName = input.trim();
   updateCertDisp();
   document.getElementById('cert-modal').style.display = 'flex';
 }
 function closeCertModal() {
   document.getElementById('cert-modal').style.display = 'none';
 }
+function changeCertName() {
+  const input = prompt('お名前を変更してください', certName);
+  if (input !== null) { certName = input.trim(); updateCertDisp(); }
+}
 function updateCertDisp() {
-  const name = (document.getElementById('cert-name').value || '').trim() || '○○○○';
-  document.getElementById('cert-name-disp').textContent = name + ' 殿';
+  document.getElementById('cert-name-disp').textContent = (certName || '○○○○') + ' 殿';
 
   const startStIdx = route[0];
   const startTime  = arrivals[startStIdx] || '---';
@@ -647,11 +653,16 @@ function updateCertDisp() {
     `<div class="cert-srow"><span class="cert-slbl">${l}</span><span class="cert-sval">${v}</span></div>`
   ).join('');
 
-  // ラップタイム
-  const lapsHtml = route.map((stIdx, pos) => {
-    const t = arrivals[stIdx] || '--:--';
-    return `<div class="cert-lap"><span class="cert-lap-n">No.${pos + 1}</span><span class="cert-lap-nm">${ST[stIdx].n}</span><span class="cert-lap-t">${t}</span></div>`;
-  }).join('') + `<div class="cert-lap"><span class="cert-lap-n">No.31</span><span class="cert-lap-nm">${ST[startStIdx].n}(G)</span><span class="cert-lap-t">${arrivals['__goal__'] || '--:--'}</span></div>`;
+  // ラップタイム（主要6駅 + ゴール）
+  const KEY_ST = new Set([0, 3, 7, 15, 19, 25]); // 渋谷・新宿・池袋・上野・東京・品川
+  const lapsHtml = route
+    .map((stIdx, pos) => ({ stIdx, pos }))
+    .filter(({ stIdx }) => KEY_ST.has(stIdx))
+    .map(({ stIdx, pos }) => {
+      const t = arrivals[stIdx] || '--:--';
+      return `<div class="cert-lap"><span class="cert-lap-n">No.${pos + 1}</span><span class="cert-lap-nm">${ST[stIdx].n}</span><span class="cert-lap-t">${t}</span></div>`;
+    }).join('') +
+    `<div class="cert-lap cert-lap-goal"><span class="cert-lap-n">No.31</span><span class="cert-lap-nm">${ST[startStIdx].n}（ゴール）</span><span class="cert-lap-t">${arrivals['__goal__'] || '--:--'}</span></div>`;
   document.getElementById('cert-laps').innerHTML = lapsHtml;
 
   const d = new Date();
@@ -662,31 +673,36 @@ function updateCertDisp() {
 function saveCertImage() {
   updateCertDisp();
   if (typeof html2canvas === 'undefined') {
-    alert('画像保存機能が読み込まれていません。スクリーンショットで保存してください。');
+    alert('スクリーンショットで保存してください。');
     return;
   }
+  const btn = document.querySelector('.cert-btn-save');
+  if (btn) { btn.textContent = '⏳ 生成中...'; btn.disabled = true; }
   html2canvas(document.getElementById('cert-display'), {
     scale: 2, backgroundColor: '#f9f0dc', logging: false, useCORS: true,
   }).then(canvas => {
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    if (isIOS) {
-      // iOS: ページ内に画像表示して長押し保存を促す
-      let img = document.getElementById('cert-inline-img');
-      if (!img) {
-        img = document.createElement('img');
-        img.id = 'cert-inline-img';
-        img.style.cssText = 'width:100%;display:block;margin:8px 0;border-radius:4px;border:1px solid var(--gold);';
-        document.getElementById('cert-save-hint').before(img);
-      }
-      img.src = canvas.toDataURL('image/png');
-      document.getElementById('cert-save-hint').style.display = 'block';
-    } else {
-      const link = document.createElement('a');
-      link.download = '山手線完歩証.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-    }
+    if (btn) { btn.textContent = '📥 画像を保存'; btn.disabled = false; }
+    showCertImage(canvas.toDataURL('image/png'));
+  }).catch(() => {
+    if (btn) { btn.textContent = '📥 画像を保存'; btn.disabled = false; }
+    alert('画像生成に失敗しました。スクリーンショットで保存してください。');
   });
+}
+function showCertImage(dataUrl) {
+  let ov = document.getElementById('cert-img-overlay');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'cert-img-overlay';
+    ov.innerHTML = `
+      <div id="cert-img-box">
+        <p id="cert-img-hint">📱 画像を長押しして「写真に保存」を選んでください</p>
+        <img id="cert-img-el" src="" alt="完歩証">
+        <button id="cert-img-close" onclick="document.getElementById('cert-img-overlay').style.display='none'">✕ 閉じる</button>
+      </div>`;
+    document.body.appendChild(ov);
+  }
+  document.getElementById('cert-img-el').src = dataUrl;
+  ov.style.display = 'flex';
 }
 
 // ── 復元 ──
