@@ -64,6 +64,16 @@
     color: var(--ink); box-sizing: border-box;
     -webkit-appearance: none; appearance: none;
   }
+  /* ── トークテーマ ── */
+  .talk-cat-hdr { font-size:12px; font-weight:900; letter-spacing:1px; padding:7px 12px 6px; margin:10px 0 6px; border-radius:5px; }
+  .talk-card { background:rgba(255,255,255,.85); border-radius:6px; padding:10px 12px; margin-bottom:7px; border-left:4px solid; }
+  .talk-card-head { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+  .talk-card-icon { font-size:20px; line-height:1; }
+  .talk-card-title { font-size:13px; font-weight:900; color:var(--ink); }
+  .talk-card-desc { font-size:11px; color:var(--brown); line-height:1.75; margin:4px 0 6px; }
+  .talk-card-tip { font-size:10px; color:var(--map-blue); background:rgba(26,74,122,.07); border-left:3px solid currentColor; padding:4px 7px; border-radius:0 3px 3px 0; line-height:1.6; }
+  .talk-card-tip::before { content:'💡 '; }
+
   .lunch-noon-header {
     font-size: 10px; border-radius: 4px; padding: 7px 10px; margin-bottom: 10px;
     line-height: 1.5; text-align: center;
@@ -417,14 +427,9 @@
     <div id="map-content"></div>
   </div>
 
-  <!-- 昼食 -->
-  <div id="tab-gourmet" class="tab-content">
-    <div class="card" style="border-color:var(--green);">
-      <div class="sec-title" style="color:var(--green);">🍜 昼食</div>
-      <p style="font-size:9px;color:var(--brown);text-align:center;margin-bottom:10px;">腹八分目を守り、後半の冒険に備えよ。蕎麦・うどんが上策なり。</p>
-      <div id="lunch-header" class="lunch-noon-header"></div>
-      <div class="lunch-grid" id="lunch-grid"></div>
-    </div>
+  <!-- トークテーマ -->
+  <div id="tab-talk" class="tab-content">
+    <div id="talk-content" style="padding:8px 12px;"></div>
   </div>
 
   <!-- 持ち物 -->
@@ -453,8 +458,8 @@
     <button id="nav-map" onclick="showTab('map')">
       <span class="nav-i">🧭</span>マップ
     </button>
-    <button id="nav-gourmet" onclick="showTab('gourmet')">
-      <span class="nav-i">🍜</span>昼食
+    <button id="nav-talk" onclick="showTab('talk')">
+      <span class="nav-i">💬</span>トーク
     </button>
     <button id="nav-tips" onclick="showTab('tips')">
       <span class="nav-i">🎒</span>持ち物

@@ -93,11 +93,11 @@ function confirmSetup() {
   if (anyChanged) {
     document.getElementById('station-list').innerHTML = '';
     document.getElementById('ms-grid').innerHTML = '';
-    document.getElementById('lunch-grid').innerHTML = '';
+    document.getElementById('talk-content').innerHTML = '';
     buildRoute();
     buildMilestones();
     buildStations();
-    buildLunch();
+    buildTalk();
     updateHeaderLabels();
     restoreUI();
   } else {
@@ -122,7 +122,7 @@ function startApp() {
   buildRoute();
   buildMilestones();
   buildStations();
-  buildLunch();
+  buildTalk();
   buildItems(ITEMS.must, 'must', 'items-must');
   buildItems(ITEMS.nice, 'nice', 'items-nice');
   updateHeaderLabels();
@@ -309,6 +309,34 @@ function buildLunch() {
     const badge = l.local ? `<span class="l-local-badge">⭐ 地元名店</span>` : '';
     d.innerHTML = `<div class="l-name">${l.n}${badge}</div><span class="l-genre">${l.g}</span><span style="font-size:9px;color:var(--brown);margin-left:3px">${l.a}</span><div class="l-rec">推薦：${l.r}</div><div class="l-desc">${l.d}</div><a href="${l.url}" target="_blank" rel="noopener" class="map-btn">📍 地図を開く</a>`;
     grid.appendChild(d);
+  });
+}
+
+// ── トークテーマ構築 ──
+function buildTalk() {
+  const container = document.getElementById('talk-content');
+  if (!container) return;
+  container.innerHTML = '';
+  TALK.forEach(cat => {
+    const hdr = document.createElement('div');
+    hdr.className = 'talk-cat-hdr';
+    hdr.textContent = cat.cat;
+    hdr.style.cssText = `color:${cat.col};background:${cat.col}18;border-left:4px solid ${cat.col};`;
+    container.appendChild(hdr);
+
+    cat.items.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'talk-card';
+      card.style.borderColor = cat.col;
+      card.innerHTML = `
+        <div class="talk-card-head">
+          <span class="talk-card-icon">${item.icon}</span>
+          <span class="talk-card-title">${item.title}</span>
+        </div>
+        <div class="talk-card-desc">${item.desc}</div>
+        <div class="talk-card-tip" style="color:${cat.col};border-color:${cat.col};">${item.tip}</div>`;
+      container.appendChild(card);
+    });
   });
 }
 
