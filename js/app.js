@@ -181,8 +181,8 @@ function calcWalkedKm() {
       total += adjDist(route[i], route[i + 1]);
     }
   }
-  // 全駅制覇で最終区間（最後の駅→出発駅）を加算
-  if (stamped.size === route.length) {
+  // ゴールスタンプ済みのときのみ最終区間（最後の駅→出発駅）を加算
+  if (stamped.size === route.length && arrivals['__goal__']) {
     total += adjDist(route[route.length - 1], route[0]);
   }
   return Math.round(total * 10) / 10;
@@ -511,6 +511,10 @@ function tapGoal() {
   }
   if (timeEl) timeEl.textContent = on ? arrivals['__goal__'] : '';
 
+  const km = calcWalkedKm();
+  updateProg(km);
+  updateMS(km);
+
   const certBtn = document.getElementById('cert-open-btn');
   if (on) {
     if (certBtn) certBtn.style.display = 'inline-block';
@@ -551,8 +555,9 @@ function showTab(name) {
 // ── 進捗更新 ──
 function updateProg(km) {
   if (km === undefined) km = calcWalkedKm();
-  const c = stamped.size;
-  const pct = Math.round(c / ST.length * 100);
+  const c    = stamped.size;
+  const done = c + (arrivals['__goal__'] ? 1 : 0);
+  const pct  = Math.round(done / (ST.length + 1) * 100); // 31チェックポイント
   document.getElementById('prog-bar').style.width = pct + '%';
   document.getElementById('prog-pct').textContent = pct + '%';
   document.getElementById('prog-s').textContent = c;

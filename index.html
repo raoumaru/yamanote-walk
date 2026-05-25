@@ -55,6 +55,7 @@
     box-shadow: 0 3px 10px rgba(178,34,34,.4); transition: opacity .2s;
   }
   #setup-confirm-btn:active { opacity: .8; }
+  .setup-notice { margin-top:12px; font-size:10px; color:rgba(107,58,31,.65); line-height:1.7; text-align:center; padding:8px 4px; border-top:1px solid rgba(200,146,10,.25); }
   .time-wrap { display: block; width: 100%; overflow: hidden; }
   #setup-time {
     display: block; width: 100%; min-width: 0; padding: 8px 10px;
@@ -357,6 +358,7 @@
     </div>
 
     <button id="setup-confirm-btn" onclick="confirmSetup()">🚶 山手線ウォークを始める！</button>
+    <div class="setup-notice">⚠ スタンプ記録はこのブラウザにのみ保存されます。<br>シークレットモード・別のブラウザ・別のデバイスでは引き継がれません。</div>
   </div>
 </div>
 
